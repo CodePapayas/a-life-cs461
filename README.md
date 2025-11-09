@@ -1,2 +1,7 @@
-# a-life-cs461
-This will serve as our prototype 
+# Project A-Life - CS461 2025 
+    Project description goes here
+## Table of Contents
+
+
+
+
