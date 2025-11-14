@@ -1,0 +1,3 @@
+/Users/kailindskog/opal1/simple_simulation/build/CMakeFiles/simple_simulation.dir
+/Users/kailindskog/opal1/simple_simulation/build/CMakeFiles/edit_cache.dir
+/Users/kailindskog/opal1/simple_simulation/build/CMakeFiles/rebuild_cache.dir
