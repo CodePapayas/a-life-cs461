@@ -1,7 +1,7 @@
 #include <tuple>
 
-int chunk_amt = 32;
-int tile_amt = 3;
+const int chunk_amt = 32;
+const int tile_amt = 3;
 
 class Vector2d{
 	public:
