@@ -1,4 +1,4 @@
-#include "Environment.h"
+#include "./Header Files/Environment.h"
 class Vector2d{
 	public:
 		float x;
@@ -8,7 +8,7 @@ class Vector2d{
 		float dot(Vector2d other) {return (x * other.x + y * other.y);} 
 };
 
-class Environment::Tile{
+class Tile{
 	private:
 		int tile_id;
 		int value = 0;
