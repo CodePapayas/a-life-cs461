@@ -17,8 +17,7 @@ class Tile{
 		int value = 0; // currently an arbitrary value for tracking things like noise
 	public:
 		Tile() {
-            value = rand() % 10;
-            std::cout << value << " ";
+            value = rand() % 10; //placeholder for noise
         };
         int getValue(){return value;};
 };
@@ -37,7 +36,6 @@ class Chunk{
                 }
                 tiles.push_back(tile_col);
             }
-            std::cout << std::endl;
         };
 };
 
