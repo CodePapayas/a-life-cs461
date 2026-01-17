@@ -3,7 +3,7 @@
 
 #include <tuple>
 #include <iostream>
-#include <vector>
+#include <vector>       // added vector dep to change up arrays
 
 const int chunk_amt = 3;
 const int tile_amt = 3;

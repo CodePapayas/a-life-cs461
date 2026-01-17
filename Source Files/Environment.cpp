@@ -27,7 +27,7 @@ class Tile{
 class Chunk{
 	int chunk_id; 
     public:
-        std::vector<std::vector<Tile*>> tiles;
+        std::vector<std::vector<Tile*>> tiles; // added vector dep to change up arrays
     	Chunk(){
             for(int x = 0; x < tile_amt; x++){
                 std::vector<Tile*> tile_col;
