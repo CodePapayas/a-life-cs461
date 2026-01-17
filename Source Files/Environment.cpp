@@ -1,7 +1,5 @@
 #include "./Header Files/Environment.h"
 
-const int chunk_amt = 32;
-const int tile_amt = 3;
 
 class Vector2d{
 	public:
@@ -69,9 +67,47 @@ std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
     return {chunk_pos, tile_pos};
 }
 
+std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(int x, int y){
+    // Converts absolute position coordinates to the array index system.
+    // Takes in the pos value and clamps it to the range of the chunks array and the tiles array inside chunks.
+    // Input: Vector2d pos;
+    // Ouput: Vector2d chunk_pos, Vector2d tile_pos;
+    
+    Vector2d pos = Vector2d(x,y);
+
+    int true_x = 	pos.x - x_origin;
+    int true_y = 	pos.y - y_origin;
+    
+    int chunk_x = 	true_x / tile_amt;
+    int chunk_y = 	true_y / tile_amt;
+    
+    int tile_x = 	true_x % tile_amt;
+    int tile_y = 	true_y % tile_amt;
+    
+    // keep chunk position bound
+    if (chunk_x < 0) {chunk_x = 0;}
+    else if (chunk_y >= chunk_amt) {chunk_y = chunk_amt - 1;}
+    if (chunk_y < 0) {chunk_y = 0;}
+    else if (chunk_y >= chunk_amt) {chunk_y = chunk_amt - 1;}
+    
+    Vector2d chunk_pos = 	Vector2d(chunk_x, chunk_y);
+    Vector2d tile_pos =		Vector2d(tile_x, tile_y);
+    
+    return {chunk_pos, tile_pos};
+}
+
+int Environment::getTileInfo(int x, int y){
+    Vector2d pos = Vector2d(x,y);
+    Vector2d chunk_pos;
+    Vector2d tile_pos;
+    auto[chunk_pos, tile_pos] = this->toChunkCoord(pos);
+    return chunks[(int)chunk_pos.x][(int)chunk_pos.y].tiles[(int)tile_pos.x][(int)tile_pos.y].getValue();
+}
+
 int Environment::getTileInfo(Vector2d pos){
     Vector2d chunk_pos;
     Vector2d tile_pos;
     auto[chunk_pos, tile_pos] = this->toChunkCoord(pos);
     return chunks[(int)chunk_pos.x][(int)chunk_pos.y].tiles[(int)tile_pos.x][(int)tile_pos.y].getValue();
 }
+

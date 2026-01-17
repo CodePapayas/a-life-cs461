@@ -3,6 +3,9 @@
 
 #include <tuple>
 
+const int chunk_amt = 32;
+const int tile_amt = 3;
+
 // placeholder classes for functionality, may be extrapolated into their own files later
 class Vector2d;
 class Tile;
@@ -18,7 +21,11 @@ private:
 public:
     Environment(){};
     std::tuple<Vector2d, Vector2d> toChunkCoord(Vector2d pos);
+    std::tuple<Vector2d, Vector2d> toChunkCoord(int x, int y);
     int getTileInfo(Vector2d pos);
+    int getTileInfo(int x, int y);
+    int getTilesPerChunk()          {return tile_amt;};
+    int getChunksInEnvironment()    {return chunk_amt;};
 };
 
 #endif
