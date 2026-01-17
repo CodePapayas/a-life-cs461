@@ -27,20 +27,26 @@ class Tile{
 class Chunk{
 	int chunk_id; 
     public:
-        Tile **tiles;
+        std::vector<std::vector<Tile*>> tiles;
     	Chunk(){
-            tiles = new Tile*[tile_amt];
-            for(int r = 0; r < tile_amt; r++){
-                tiles[r] = new Tile[tile_amt];
+            for(int x = 0; x < tile_amt; x++){
+                std::vector<Tile*> tile_col;
+                for(int y = 0; y < tile_amt; y++){
+                    tile_col.push_back(new Tile());
+                }
+                tiles.push_back(tile_col);
             }
             std::cout << std::endl;
         };
 };
 
 Environment::Environment(){
-    chunks = new Chunk*[chunk_amt];
-    for(int r = 0; r < chunk_amt; r++){
-        chunks[r] = new Chunk[chunk_amt];
+    for(int x = 0; x < chunk_amt; x++){
+        std::vector<Chunk*> chunk_col;
+        for(int y = 0; y < chunk_amt; y++){
+            chunk_col.push_back(new Chunk());
+        }
+        chunks.push_back(chunk_col);
     }
     /*
     for(int x = 0; x < chunk_amt; x++){
@@ -60,8 +66,8 @@ std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
     // Input: Vector2d pos;
     // Ouput: Vector2d chunk_pos, Vector2d tile_pos;
     
-    int true_x = 	pos.x - x_origin;
-    int true_y = 	pos.y - y_origin;
+    int true_x = 	pos.x;//pos.x - x_origin;
+    int true_y = 	pos.y;//pos.y - y_origin;
     
     int chunk_x = 	true_x / tile_amt;
     int chunk_y = 	true_y / tile_amt;
@@ -87,6 +93,10 @@ int Environment::getTileInfo(Vector2d pos){
     //std::cout << "Getting tile info..." << std::endl;
     auto[chunk_pos, tile_pos] = this->toChunkCoord(pos);
     //std::cout << "Got coords, getting value..." << std::endl;
-    int result          = chunks[(int)chunk_pos.x][(int)chunk_pos.y].tiles[(int)tile_pos.x][(int)tile_pos.y].getValue();
+
+    Chunk *curr_chunk   = chunks[(int)chunk_pos.x][(int)chunk_pos.y];
+    Tile *curr_tile     = curr_chunk->tiles[(int)tile_pos.x][(int)tile_pos.y];
+
+    int result          = chunks[(int)chunk_pos.x][(int)chunk_pos.y]->tiles[(int)tile_pos.x][(int)tile_pos.y]->getValue();
     return result;
 };
