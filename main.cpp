@@ -1,5 +1,8 @@
 #include "./source/Environment.h"
 #include <iostream>
+#include <cassert>      // for testing
+
+// second usecase of Vector2d, may warrant class construction.
 class Vector2d{
 	public:
 		float x;
@@ -9,7 +12,7 @@ class Vector2d{
 		float dot(Vector2d other) {return (x * other.x + y * other.y);} 
 };
 
-int main(){
+void test_DisplayEnvironment(){
     std::cout << "Generating environment grid..." << std::endl;
     Environment env;
     int chunks = env.getChunksInEnvironment();
@@ -22,5 +25,9 @@ int main(){
         }
         std::cout << std::endl;
     }
+}
+
+int main(){
+    test_DisplayEnvironment();
     return 0;
 }

@@ -1,4 +1,21 @@
 #include "Environment.h"
+// Environment Class
+// Responsible for creating, handling, and accessing the simulation environment and it's data.
+// Agents and other simulation entities can access specific data necessary
+
+// ------------------------------[TO-DO]------------------------------
+// - Implement perlin noise
+// - Optimize data storage to be faster
+// - More getters and setters, just cause
+// - Create a "key : value" system for efficient chunk and tile lookup purposes
+// - Refactor tiles and chunks to remain ungenerated until accessed
+//      - Likely won't be until we get Agent functionality implemented
+// - Stop using so many darn nested loops where possible
+// - Adjust the global variables chunk_amt and tile_amt to be configurable at runtime
+//      - ... and by extent, adjust the "chunks" and "tiles" arrays/vectors/lists to accomodate this
+// - Memory management considerations
+//      - Mainly pointer cleanup on deconstruction
+// - Class method overloads to allow integer parameters instead of Vector2d
 
 // class for tracking positions, like a <float, float> tuple but with vector math.
 class Vector2d{
@@ -22,7 +39,6 @@ class Tile{
         int getValue(){return value;};
 };
 
-
 // class for holding chunk data
 class Chunk{
 	int chunk_id; 
@@ -39,6 +55,8 @@ class Chunk{
         };
 };
 
+// constructor for environment
+// currently, generates the whole chunk grid
 Environment::Environment(){
     for(int x = 0; x < chunk_amt; x++){
         std::vector<Chunk*> chunk_col;
@@ -47,16 +65,7 @@ Environment::Environment(){
         }
         chunks.push_back(chunk_col);
     }
-    /*
-    for(int x = 0; x < chunk_amt; x++){
-        for(int y = 0; y < chunk_amt; y++){
-            //chunks[x][y] = new Chunk();
-        }
-    }
-    */
 };
-
-// stores overall environment map for easy ID lookup
 
 //(some type for noise) Noise = (some type for noise)(); // get the current noise we are sampling from
 std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
@@ -65,8 +74,8 @@ std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
     // Input: Vector2d pos;
     // Ouput: Vector2d chunk_pos, Vector2d tile_pos;
     
-    int true_x = 	pos.x;//pos.x - x_origin;
-    int true_y = 	pos.y;//pos.y - y_origin;
+    int true_x = 	pos.x; //pos.x - x_origin;
+    int true_y = 	pos.y; //pos.y - y_origin; // got ambitious here, wanted to account for if (0,0) was the center of the grid and not the top left corner
     
     int chunk_x = 	true_x / tile_amt;
     int chunk_y = 	true_y / tile_amt;
@@ -87,15 +96,11 @@ std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
 }
 
 int Environment::getTileInfo(Vector2d pos){
-    //Vector2d chunk_pos;
-    //Vector2d tile_pos;
-    //std::cout << "Getting tile info..." << std::endl;
     auto[chunk_pos, tile_pos] = this->toChunkCoord(pos);
-    //std::cout << "Got coords, getting value..." << std::endl;
 
     Chunk *curr_chunk   = chunks[(int)chunk_pos.x][(int)chunk_pos.y];
     Tile *curr_tile     = curr_chunk->tiles[(int)tile_pos.x][(int)tile_pos.y];
 
-    int result          = chunks[(int)chunk_pos.x][(int)chunk_pos.y]->tiles[(int)tile_pos.x][(int)tile_pos.y]->getValue();
+    int result          = curr_tile->getValue();
     return result;
 };
