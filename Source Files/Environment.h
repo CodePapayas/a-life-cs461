@@ -2,8 +2,9 @@
 #define ENVIRONMENT_H
 
 #include <tuple>
+#include <iostream>
 
-const int chunk_amt = 32;
+const int chunk_amt = 3;
 const int tile_amt = 3;
 
 // placeholder classes for functionality, may be extrapolated into their own files later
@@ -19,11 +20,10 @@ private:
     double x_origin = ((double)(chunk_amt * tile_amt)) / 2.0;
     double y_origin = ((double)(chunk_amt * tile_amt)) / 2.0;
 public:
-    Environment(){};
+    Environment();
+    ~Environment(){delete[] chunks;}
     std::tuple<Vector2d, Vector2d> toChunkCoord(Vector2d pos);
-    std::tuple<Vector2d, Vector2d> toChunkCoord(int x, int y);
     int getTileInfo(Vector2d pos);
-    int getTileInfo(int x, int y);
     int getTilesPerChunk()          {return tile_amt;};
     int getChunksInEnvironment()    {return chunk_amt;};
 };
