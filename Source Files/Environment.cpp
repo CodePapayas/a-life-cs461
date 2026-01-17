@@ -1,5 +1,6 @@
 #include "Environment.h"
 
+// class for tracking positions, like a <float, float> tuple but with vector math.
 class Vector2d{
 	public:
 		float x;
