@@ -6,7 +6,7 @@
 #include <vector>       // added vector dep to change up arrays
 
 const int chunk_amt = 3;
-const int tile_amt = 3;
+const int tile_amt = 9;
 
 // placeholder classes for functionality, may be extrapolated into their own files later
 class Vector2d;

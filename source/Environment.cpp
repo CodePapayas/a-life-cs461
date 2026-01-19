@@ -77,17 +77,17 @@ std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
     int true_x = 	pos.x; //pos.x - x_origin;
     int true_y = 	pos.y; //pos.y - y_origin; // got ambitious here, wanted to account for if (0,0) was the center of the grid and not the top left corner
     
-    int chunk_x = 	true_x / tile_amt;
-    int chunk_y = 	true_y / tile_amt;
+    int chunk_x = 	(true_x / tile_amt) - chunk_amt;
+    int chunk_y = 	(true_y / tile_amt) - chunk_amt;
     
     int tile_x = 	true_x % tile_amt;
     int tile_y = 	true_y % tile_amt;
     
     // keep chunk position bound
-    if (chunk_x < 0) {chunk_x = 0;}
-    else if (chunk_y >= chunk_amt) {chunk_y = chunk_amt - 1;}
-    if (chunk_y < 0) {chunk_y = 0;}
-    else if (chunk_y >= chunk_amt) {chunk_y = chunk_amt - 1;}
+    if (chunk_x < 0)                {chunk_x = 0;}
+    else if (chunk_y >= chunk_amt)  {chunk_y = chunk_amt - 1;}
+    if (chunk_y < 0)                {chunk_y = 0;}
+    else if (chunk_y >= chunk_amt)  {chunk_y = chunk_amt - 1;}
     
     Vector2d chunk_pos = 	Vector2d(chunk_x, chunk_y);
     Vector2d tile_pos =		Vector2d(tile_x, tile_y);

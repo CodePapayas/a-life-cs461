@@ -20,7 +20,7 @@ void test_DisplayEnvironment(){
     int env_size = tiles * chunks;
     std::cout << "Displaying " << env_size << "x" << env_size << " tile environment grid." << std::endl;
     for(int y = 0; y < env_size; y++){
-        for(int x = 0; x < (tiles*tiles); x++){
+        for(int x = 0; x < env_size; x++){
             std::cout << env.getTileInfo(Vector2d(x,y)) << " ";
         }
         std::cout << std::endl;
