@@ -40,8 +40,28 @@
 # debug information files
 *.dwo
 
+# Build directories
+**/build/
+**/builds/
+**/cmake-build-*/
+
+# CMake build artifacts
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/Makefile
+**/CTestTestfile.cmake
+**/Testing/
+
+# Generated dependency files
+**/*.o.d
+**/*.obj.d
+**/*.d
+
+# clangd/IDE caches
+.cache/
+.idea/
+.vscode/
+
 # ignore shell folder in brain
 brain/shells/
-
-# ignore local builds
-builds/
