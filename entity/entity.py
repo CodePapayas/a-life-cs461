@@ -124,7 +124,7 @@ class Entity:
         Checks if the individual should have died.
         :return: True if the organism should die, false otherwise
         """
-        if self._biology.check_death() == True:
+        if self._biology.check_death():
             return True
         return False
 
