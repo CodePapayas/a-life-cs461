@@ -53,7 +53,11 @@ class Chunk{
             }
         };
         ~Chunk(){
-            delete &tiles;
+            for(int x = 0; x < chunk_amt; x++){
+                for(int y = 0; y < chunk_amt; y++){
+                    delete &tiles[x][y];
+                }
+            }
         };	
         Tile *getTile(int x, int y){
             return tiles[x][y];

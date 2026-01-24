@@ -24,7 +24,13 @@ private:
     std::map <int, Vector2d> chunk_map; // get the X,Y for it for simplicity
 public:
     Environment();
-    ~Environment(){};
+    ~Environment(){
+        for(int x = 0; x < chunk_amt; x++){
+            for(int y = 0; y < chunk_amt; y++){
+                delete &chunks[x][y];
+            }
+        }
+    };
     std::tuple<Vector2d, Vector2d> toChunkCoords(Vector2d pos);
     float getTileValue(Vector2d pos);
     int getTilesPerChunk()          {return tile_amt;};
