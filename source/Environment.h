@@ -4,6 +4,7 @@
 #include <tuple>
 #include <iostream>
 #include <vector>       // added vector dep to change up arrays
+#include <map>
 
 const int chunk_amt = 3;
 const int tile_amt = 9;
@@ -13,20 +14,23 @@ class Vector2d;
 class Tile;
 class Chunk;
 
+
 class Environment
 {
 private:
-    std::vector<std::vector<Chunk*>> chunks;
-
     double x_origin = ((double)(chunk_amt * tile_amt)) / 2.0;
     double y_origin = ((double)(chunk_amt * tile_amt)) / 2.0;
+    std::vector<std::vector<Chunk*>> chunks;    
+    std::map <int, Vector2d> chunk_map; // get the X,Y for it for simplicity
 public:
     Environment();
     ~Environment(){};
-    std::tuple<Vector2d, Vector2d> toChunkCoord(Vector2d pos);
-    int getTileInfo(Vector2d pos);
+    std::tuple<Vector2d, Vector2d> toChunkCoords(Vector2d pos);
+    float getTileValue(Vector2d pos);
     int getTilesPerChunk()          {return tile_amt;};
     int getChunksInEnvironment()    {return chunk_amt;};
+    Vector2d getChunkFromID(int id);
+    Vector2d getDistanceToTile(Vector2d a, Vector2d b);
 };
 
 #endif

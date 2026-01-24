@@ -29,21 +29,20 @@ class Vector2d{
 
 // class for holding tile data
 class Tile{
-	private:
-		int tile_id; // relative to tile index in chunk's Tile array tiles
-		int value = 0; // currently an arbitrary value for tracking things like noise
+	float value = 0.0f; // currently an arbitrary value for tracking things like noise
 	public:
 		Tile() {
-            value = rand() % 10; //placeholder for noise
+            value = (float)(rand() % 11) / 10.0f; //placeholder for noise
         };
-        int getValue(){return value;};
+        float getValue(){return value;};
 };
 
 // class for holding chunk data
 class Chunk{
-	int chunk_id; 
+    int chunk_id;
+    std::vector<std::vector<Tile*>> tiles; // added vector dep to change up arrays
+    std::map <int, Vector2d> tile_map;  // key is tile ID, value is a vector2d with the [x][y] position of the tile in the 2d array tiles;
     public:
-        std::vector<std::vector<Tile*>> tiles; // added vector dep to change up arrays
     	Chunk(){
             for(int x = 0; x < tile_amt; x++){
                 std::vector<Tile*> tile_col;
@@ -53,6 +52,12 @@ class Chunk{
                 tiles.push_back(tile_col);
             }
         };
+        ~Chunk(){
+            delete &tiles;
+        };	
+        Tile *getTile(int x, int y){
+            return tiles[x][y];
+        }
 };
 
 // constructor for environment
@@ -61,14 +66,17 @@ Environment::Environment(){
     for(int x = 0; x < chunk_amt; x++){
         std::vector<Chunk*> chunk_col;
         for(int y = 0; y < chunk_amt; y++){
+            int curr_id = chunk_map.size();
+            chunk_map[curr_id] = Vector2d(x,y);
             chunk_col.push_back(new Chunk());
+            // chunk_col[y]->chunk_id = curr_id;
         }
         chunks.push_back(chunk_col);
     }
 };
 
 //(some type for noise) Noise = (some type for noise)(); // get the current noise we are sampling from
-std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
+std::tuple<Vector2d, Vector2d> Environment::toChunkCoords(Vector2d pos){
     // Converts absolute position coordinates to the array index system.
     // Takes in the pos value and clamps it to the range of the chunks array and the tiles array inside chunks.
     // Input: Vector2d pos;
@@ -85,7 +93,7 @@ std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
     
     // keep chunk position bound
     if (chunk_x < 0)                {chunk_x = 0;}
-    else if (chunk_y >= chunk_amt)  {chunk_y = chunk_amt - 1;}
+    else if (chunk_x >= chunk_amt)  {chunk_x = chunk_amt - 1;}
     if (chunk_y < 0)                {chunk_y = 0;}
     else if (chunk_y >= chunk_amt)  {chunk_y = chunk_amt - 1;}
     
@@ -95,12 +103,20 @@ std::tuple<Vector2d, Vector2d> Environment::toChunkCoord(Vector2d pos){
     return {chunk_pos, tile_pos};
 }
 
-int Environment::getTileInfo(Vector2d pos){
-    auto[chunk_pos, tile_pos] = this->toChunkCoord(pos);
+float Environment::getTileValue(Vector2d pos){
+    auto[chunk_pos, tile_pos] = this->toChunkCoords(pos);
 
     Chunk *curr_chunk   = chunks[(int)chunk_pos.x][(int)chunk_pos.y];
-    Tile *curr_tile     = curr_chunk->tiles[(int)tile_pos.x][(int)tile_pos.y];
+    Tile *curr_tile     = curr_chunk->getTile((int)tile_pos.x, (int)tile_pos.y);
 
-    int result          = curr_tile->getValue();
+    float result          = curr_tile->getValue();
     return result;
+};
+
+Vector2d Environment::getChunkFromID(int id){
+    Vector2d *chunk_coord = &chunk_map[id];
+    if(chunk_coord){
+        return *chunk_coord;
+    }
+    return Vector2d(-1, -1);
 };
