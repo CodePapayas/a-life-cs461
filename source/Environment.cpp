@@ -1,3 +1,7 @@
+/*
+ *  Dillon Stickler - Oregon State University - 2026
+ */
+
 #include "Environment.h"
 // Environment Class
 // Responsible for creating, handling, and accessing the simulation environment and it's data.

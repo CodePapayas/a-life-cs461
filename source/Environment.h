@@ -1,3 +1,7 @@
+/*
+ *  Dillon Stickler - Oregon State University - 2026
+ */
+
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
