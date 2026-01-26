@@ -24,4 +24,18 @@ TEST_CASE("Activation Function Tests") {
     CHECK(dot_product(vectorNeg1, vectorNeg2) == -48.1);
     CHECK(dot_product(vector3, vector4) == doctest::Approx(193.886).epsilon(1e-6));
 
+    // Activation Layer Tests - check returned vector size (n_out * n_in)
+    ActivationLayerReLU layer(2, 2);
+    CHECK(layer.get_weight_count() == 4);
+    CHECK(layer.get_biases_count() == 2);
+    std::vector<double> biases = layer.get_biases();
+        for (double b : biases) {
+            CHECK(b >= -1.0);
+            CHECK(b <= 1.0);
+        }
+    std::vector<double> weights = layer.get_weights();
+        for (double w : weights) {
+            CHECK(w >= -1.0);
+            CHECK(w <= 1.0);
+        }
 }
