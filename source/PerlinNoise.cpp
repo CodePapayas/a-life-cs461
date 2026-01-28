@@ -11,19 +11,6 @@
 #include <cstring>
 #include <time.h>
 
-enum eDEBUG{
-	PERLIN = 0,
-	PERMUTATION,
-	SAMPLING,
-	NONE
-};
-
-eDEBUG DEBUG = NONE;
-
-int w = 256;
-int h = 256;
-char* img = NULL;
-
 class Vector2d{
 	public:
 		double x;
@@ -41,18 +28,12 @@ class Vector2d{
    https://rtouti.github.io/graphics/perlin-noise-algorithm
 */
 class PerlinNoise2d{
-	/*
-		This was a lot of work to just... *appear*, but I've been writing this on my machine utilizing a secondary
-		function to output BMP files with images of the perlin noise to verify working behavior. See previous commit for
-		original version.
-	*/
-	
 	private:
 		std::vector<double> p; //permutation table
 		int p_table_size = 256;
 		
 	public:		
-		double lerp(double t, double a1, double a2) {return (a1 + t * (a2 - a1));}
+		double lerp(double a1, double a2, double t) {return (a1 + t * (a2 - a1));}
 		double fade(double t) 						{return ((6.0 * t - 15.0) * t + 10.0) * t * t * t ;}
 		
 		void shuffle(){
@@ -130,8 +111,7 @@ class PerlinNoise2d{
 			double u = fade(xf);
 			double v = fade(yf);
 
-			double result = lerp(u,
-			lerp(v, dot_bl, dot_tl),lerp(v, dot_br, dot_tr));
+			double result = lerp(lerp(dot_bl, dot_tl, v),lerp( dot_br, dot_tr, v), u);
 
 			return result;
 		}
