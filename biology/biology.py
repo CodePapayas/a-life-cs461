@@ -96,6 +96,7 @@ class Biology:
         :return: Float, the net amount
         """
         amount = quantity * self._genetic_values["Energy Efficiency"]
+        amount *= (1- self._genetic_values['Mass'])**.5
         self.add_energy(amount)
         return amount
 
@@ -120,8 +121,9 @@ class Biology:
             efficiency = 1-self._genetic_values[terrain_type]
         except KeyError:
             efficiency = 1-self._genetic_values['Traversal Efficiency 1']
-        amount = max(efficiency * TERRAIN_ENERGY_COEFFICIENT
-                     * self._genetic_values['Mass'], .01)
+        amount = max(
+            efficiency * TERRAIN_ENERGY_COEFFICIENT * self._genetic_values['Mass'],
+            .01)
         self.add_energy(amount * -1)
         return amount
 
@@ -164,9 +166,9 @@ class Biology:
         total = 0
         for k, v in self._genetic_values.items():
             if k == 'Mass':
-                total += v ** .2
+                continue
             else:
-             total += v
+                total += v
         total = total ** .5 / len(list(self._genetic_values.keys()))
         total = max(total * (1-(self._genetic_values["Mass"]**2)),.02)
         self.add_energy(total * -1 * ENERGY_DRAIN_COEFFICIENT)
