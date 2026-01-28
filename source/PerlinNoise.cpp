@@ -41,6 +41,12 @@ class Vector2d{
    https://rtouti.github.io/graphics/perlin-noise-algorithm
 */
 class PerlinNoise2d{
+	/*
+		This was a lot of work to just... *appear*, but I've been writing this on my machine utilizing a secondary
+		function to output BMP files with images of the perlin noise to verify working behavior. See previous commit for
+		original version.
+	*/
+	
 	private:
 		std::vector<double> p; //permutation table
 		int p_table_size = 256;
