@@ -192,6 +192,11 @@ class Biology:
         print('Tick energy loss: ', self.tick_energy_drain())
         print('Tick Health loss', self.tick_health_drain())
 
+    def print_vals(self):
+        print(f"Current Health: {self._health}")
+        print(f"Current Energy: {self._energy}")
+        print(f"Current Water: {self._water}")
+        
     def check_death(self):
         if self._health <= 0.0:
             return True

@@ -116,5 +116,36 @@ class TestDefaults(unittest.TestCase):
         self.assertFalse(
             self.guy.check_death()
         )
+
+class TestRandom(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Initialize the constructor and read the test genome
+        """
+        print("==================== Brain Testing ===================")
+        #random.seed(42)
+        cls.guy = Biology()
+        cls.guy.display_genetic_vals()
+
+    def setUp(self):
+        """
+        Setup a new class at each test
+        """
+        print(f"\n==================== {self._testMethodName} ====================\n")
+        print(self._testMethodDoc)
+
+    def test01(self):
+        print(
+            f"Eating {.3} energy gives {self.guy.eat_energy(.3)} energy\n",
+            f"Drinking {.7} water gives {self.guy.drink_water(.7)} water\n",
+            f"Moving through T1 drains {self.guy.movement_energy_drain(TERRAIN_1)} energy\n",
+            f"Moving through T3 drains {self.guy.movement_energy_drain(TERRAIN_3)} energy\n",
+            f"Adding .5 of Chem 4 affects health by {self.guy.add_chemical("Chem 4",.5)}"          
+        )
+        self.guy.update()
+        self.guy.print_vals()
+
 if __name__ == '__main__':
     unittest.main()
