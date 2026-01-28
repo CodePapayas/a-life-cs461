@@ -81,7 +81,7 @@ class Entity:
         :param chem: The id of the chemical
         :param amount: the amount to be added
         """
-        self._biology.add_chem(chem, amount)
+        self._biology.add_chemical(chem, amount)
 
     def biology_rem_chemical(self, chem, amount):
         """
@@ -90,6 +90,14 @@ class Entity:
         :param amount: the amount to be removed
         """
         self._biology.add_chem(chem, amount * -1)
+
+    def biology_eat(self, amount):
+        """
+        Passes an amount of energy to be consumed by the creature
+        :param amount: the amount to be modified
+        """
+        print(f"Creature consumed {amount} energy for net "
+              f"{self._biology.eat_energy(amount)} energy")
 
     def biology_add_energy(self, amount):
         """
@@ -104,6 +112,28 @@ class Entity:
         :param amount: the amount to be removed
         """
         self._biology.add_energy(amount * -1)
+
+    def biology_drink(self, amount):
+        """
+        Passes an amount of energy to be consumed by the creature
+        :param amount: the amount to be modified
+        """
+        print(f"Creature consumed {amount} water for net "
+              f"{self._biology.drink_water(amount)} water")
+
+    def biology_add_water(self, amount):
+        """
+        Adds a quantity of water to the biology
+        :param amount: the amount to be added
+        """
+        self._biology.add_water(amount)
+
+    def biology_rem_water(self, amount):
+        """
+        Removes a quantity of water from the biology.
+        :param amount: the amount to be removed
+        """
+        self._biology.add_water(amount * -1)
 
     def biology_add_health(self, amount):
         """
@@ -133,7 +163,6 @@ class Entity:
         Requests the biology to update itself for a tick.
         """
         self._biology.update()
-
 
     # Alias methods
     def __getattr__(self, name):
