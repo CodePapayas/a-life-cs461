@@ -1,5 +1,5 @@
 import random
-from biology_constants import *
+from . biology_constants import *
 
 class Biology:
 
@@ -28,6 +28,13 @@ class Biology:
         """
         for k, v in self._genetic_values.items():
             print(k,": ",v)
+
+    def get_genetic_vals(self):
+        """
+        Returns the genetic vlues of the organism
+        :return: A dictionary containing the keys and values
+        """
+        return self._genetic_values
 
     def add_health(self, val):
         """
@@ -85,6 +92,26 @@ class Biology:
         """
         try:
             return self._genetic_values[efficiency]
+        except:
+            raise KeyError
+
+    def set_efficiencies(self, vals):
+        """
+        Assiigns the genetic values passed to the organism
+        """
+        # Should add some sanitization here
+        self._genetic_values = vals
+
+    def set_efficiency(self, type, value):
+        """
+        Assigns a new value to a particular genetic trait
+        """
+        if not 0<=value<=1:
+            raise ValueError
+        # Might need to change this actually, since its assignment
+        # Maybe just check membership in keys for gen vals
+        try:
+            self._genetic_values[type] = value
         except:
             raise KeyError
 

@@ -69,11 +69,11 @@ class Entity:
 
     # Brain and biology related functions
 
-    def brain_get_decision(self):
+    def brain_get_decision(self,inputs):
         """
         Calls upon the brain to make a decision as to what to do.
         """
-        return self._brain.make_decision()
+        return self._brain.make_decision(inputs) # need to verify method and needed inputs
 
     def biology_add_chemical(self, chem, amount):
         """
@@ -163,6 +163,49 @@ class Entity:
         Requests the biology to update itself for a tick.
         """
         self._biology.update()
+
+    def biology_get_metrics(self):
+        h = self._biology.get_health()
+        e = self._biology.get_energy()
+        w = self._biology.get_water()
+        self._biology.print_vals()
+        return {"Health":h, "Energy":e, "Water":w}
+    
+    def biology_get_genetics(self):
+        """
+        Returns the genetic values of the organism
+        """
+        self._biology.display_genetic_vals()
+        return self._biology.get_genetic_vals()
+    
+    def biology_get_genetic_value(self, gene):
+        """
+        Polls the biology for a particular genetic value
+        :return: The value, returns None if value not found
+        """
+        try:
+            val = self._biology.get_efficiency(gene)
+        except KeyError:
+            print(f"Key error! Genetics had no key {gene}")
+            return None
+        print(f"{gene}: {val}")
+        return val
+    
+    def biology_movement(self, terrain):
+        """
+        Tells the biology to drain energy based on terrain type
+        """
+        try:
+            edrain = self._biology.movement_energy_drain(terrain)
+        except KeyError:
+            edrain = None
+        try:
+            wdrain = self._biology.movement_water_drain(terrain)
+        except:
+            wdrain = None
+        print(f"Energy drain for {terrain}: {edrain}"
+              f"Water drain for {terrain}: {wdrain}")
+        return (edrain, wdrain)
 
     # Alias methods
     def __getattr__(self, name):
