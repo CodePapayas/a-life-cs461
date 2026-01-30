@@ -112,6 +112,8 @@ std::tuple<Vector2d, Vector2d> Environment::toChunkCoords(Vector2d pos){
 }
 
 float Environment::getTileValue(Vector2d pos){
+    // input: Vector2 position; Desired X,Y coordinate access in environment
+    // ouput: float value; the value in the tile
     auto[chunk_pos, tile_pos] = this->toChunkCoords(pos);
 
     Chunk *curr_chunk   = chunks[(int)chunk_pos.x][(int)chunk_pos.y];
