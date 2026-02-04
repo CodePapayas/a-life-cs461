@@ -2,13 +2,15 @@
  *  Dillon Stickler - Oregon State University - 2026
  */
 
+#pragma once
+
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
 #include <tuple>
 #include <iostream>
 #include <vector>       // added vector dep to change up arrays
-#include <map>
+#include <unordered_map>
 
 const int chunk_amt = 3;
 const int tile_amt = 9;
@@ -25,16 +27,9 @@ private:
     double x_origin = ((double)(chunk_amt * tile_amt)) / 2.0;
     double y_origin = ((double)(chunk_amt * tile_amt)) / 2.0;
     std::vector<std::vector<Chunk*>> chunks;    
-    std::map <int, Vector2d> chunk_map; // get the X,Y for it for simplicity
+    std::unordered_map <int, Vector2d> chunk_map; // get the X,Y for it for simplicity
 public:
     Environment();
-    ~Environment(){
-        for(int x = 0; x < chunk_amt; x++){
-            for(int y = 0; y < chunk_amt; y++){
-                delete &chunks[x][y];
-            }
-        }
-    };
     std::tuple<Vector2d, Vector2d> toChunkCoords(Vector2d pos);
     float getTileValue(Vector2d pos);
     int getTilesPerChunk()          {return tile_amt;};

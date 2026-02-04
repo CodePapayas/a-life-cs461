@@ -3,6 +3,7 @@
  */
 
 #include "Environment.h"
+#include "MathVector.hpp"
 // Environment Class
 // Responsible for creating, handling, and accessing the simulation environment and it's data.
 // Agents and other simulation entities can access specific data necessary
@@ -21,16 +22,6 @@
 //      - Mainly pointer cleanup on deconstruction
 // - Class method overloads to allow integer parameters instead of Vector2d
 
-// class for tracking positions, like a <float, float> tuple but with vector math.
-class Vector2d{
-	public:
-		float x;
-		float y;
-		Vector2d(){x = 0; y = 0;}
-		Vector2d(int n_x, int n_y){x = n_x; y = n_y;}
-		float dot(Vector2d other) {return (x * other.x + y * other.y);} 
-};
-
 // class for holding tile data
 class Tile{
 	float value = 0.0f; // currently an arbitrary value for tracking things like noise
@@ -45,7 +36,7 @@ class Tile{
 class Chunk{
     int chunk_id;
     std::vector<std::vector<Tile*>> tiles; // added vector dep to change up arrays
-    std::map <int, Vector2d> tile_map;  // key is tile ID, value is a vector2d with the [x][y] position of the tile in the 2d array tiles;
+    std::unordered_map <int, Vector2d> tile_map;  // key is tile ID, value is a vector2d with the [x][y] position of the tile in the 2d array tiles;
     public:
     	Chunk(){
             for(int x = 0; x < tile_amt; x++){

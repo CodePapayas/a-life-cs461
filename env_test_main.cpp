@@ -1,0 +1,46 @@
+#include "./source/Environment.h"
+#include <iostream>
+#include <cassert>      // for testing
+#include "./source/MathVector.hpp"
+#include "./source/PerlinNoise.hpp"
+
+void test_DisplayEnvironment(Environment *env){
+    std::cout << "Generating environment grid..." << std::endl;
+    int chunks = env->getChunksInEnvironment();
+    int tiles = env->getTilesPerChunk();
+    int env_size = tiles * chunks;
+    std::cout << "Displaying " << env_size << "x" << env_size << " tile environment grid." << std::endl;
+    for(int y = 0; y < env_size; y++){
+        for(int x = 0; x < env_size; x++){
+            std::cout << env->getTileValue(Vector2d(x,y)) << "\t ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void test_GetChunkFromID(Environment *env){
+    int get_id = 0;
+    assert(env->getChunkFromID(get_id).x == 0 && env->getChunkFromID(get_id).y == 0);
+    std::cout << "PASSED: Got chunk from ID" << std::endl;
+}
+
+void test_SampleNoiseLayered(){
+    PerlinNoise2d noise = PerlinNoise2d();
+    noise.SetFrequency(1);
+    noise.SetAmplitude(200);
+    noise.SetOctaves(8);
+    for(int y = 0; y < 16; y++){
+        for(int x = 0; x < 16; x++){
+            std::cout << noise.SampleNoiseLayered(Vector2d(x,y)) << "\t ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+int main(){
+    Environment height_map; // generates a 2d array of normalized floats
+    test_DisplayEnvironment(&height_map);
+    test_GetChunkFromID(&height_map);
+    test_SampleNoiseLayered();
+    return 0;
+}
