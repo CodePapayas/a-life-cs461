@@ -29,14 +29,21 @@ void test_GetTileValue(Environment *env){
     std::cout << "Above limit..." << std::endl;
     std::cout << env->getTileValue(Vector2d(0, chunks * tiles)) << "\t ";
     std::cout << env->getTileValue(Vector2d(chunks * tiles, 0)) << "\t ";
-    std::cout << env->getTileValue(Vector2d(chunks * tiles, chunks * tiles)) << "\t ";
+    std::cout << env->getTileValue(Vector2d(chunks * tiles, chunks * tiles)) << "\t\n ";
 }
 
 
 void test_GetChunkFromID(Environment *env){
+    std::cout << "Get chunk from id..." << std::endl;
     int get_id = 0;
-    assert(env->getChunkFromID(get_id).x == 0 && env->getChunkFromID(get_id).y == 0);
-    std::cout << "PASSED: Got chunk from ID" << std::endl;
+
+    for(int x = 0; x <  env->getChunksInEnvironment() ; x++){
+        for(int y = 0; y <  env->getChunksInEnvironment() ; y++){
+            Vector2d curr_chunk = env->getChunkFromID(get_id);
+            assert(curr_chunk.x == x && curr_chunk.y == y);
+            get_id++;
+        }
+    }
 }
 
 void test_SampleNoiseLayered(){

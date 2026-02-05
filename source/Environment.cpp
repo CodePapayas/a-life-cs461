@@ -12,7 +12,6 @@
 // - Implement perlin noise
 // - Optimize data storage to be faster
 // - More getters and setters, just cause
-// - Create a "key : value" system for efficient chunk and tile lookup purposes
 // - Refactor tiles and chunks to remain ungenerated until accessed
 //      - Likely won't be until we get Agent functionality implemented
 // - Stop using so many darn nested loops where possible
@@ -74,7 +73,7 @@ Environment::Environment(){
     }
 };
 
-//(some type for noise) Noise = (some type for noise)(); // get the current noise we are sampling from
+// function that converts and clamps passed position data to chunk, tile coordinates of range [0, chunks * tiles per chunk - 1].
 std::tuple<Vector2d, Vector2d> Environment::toChunkCoords(Vector2d pos){
     // Converts absolute position coordinates to the array index system.
     // Takes in the pos value and clamps it to the range of the chunks array and the tiles array inside chunks.

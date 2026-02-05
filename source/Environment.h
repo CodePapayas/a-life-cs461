@@ -35,7 +35,6 @@ public:
     int getTilesPerChunk()          {return tile_amt;};
     int getChunksInEnvironment()    {return chunk_amt;};
     Vector2d getChunkFromID(int id);
-    Vector2d getDistanceToTile(Vector2d a, Vector2d b);
 };
 
 #endif
