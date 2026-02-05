@@ -18,6 +18,21 @@ void test_DisplayEnvironment(Environment *env){
     }
 }
 
+void test_GetTileValue(Environment *env){
+    std::cout << "Testing bounds..." << std::endl;
+    int chunks = env->getChunksInEnvironment();
+    int tiles = env->getTilesPerChunk();
+    std::cout << "Below zero..." << std::endl;
+    std::cout << env->getTileValue(Vector2d(0,-1)) << "\t ";
+    std::cout << env->getTileValue(Vector2d(-1, 0)) << "\t ";
+    std::cout << env->getTileValue(Vector2d(-1,-1)) << "\t ";
+    std::cout << "Above limit..." << std::endl;
+    std::cout << env->getTileValue(Vector2d(0, chunks * tiles)) << "\t ";
+    std::cout << env->getTileValue(Vector2d(chunks * tiles, 0)) << "\t ";
+    std::cout << env->getTileValue(Vector2d(chunks * tiles, chunks * tiles)) << "\t ";
+}
+
+
 void test_GetChunkFromID(Environment *env){
     int get_id = 0;
     assert(env->getChunkFromID(get_id).x == 0 && env->getChunkFromID(get_id).y == 0);
@@ -41,6 +56,7 @@ int main(){
     Environment height_map; // generates a 2d array of normalized floats
     test_DisplayEnvironment(&height_map);
     test_GetChunkFromID(&height_map);
+    test_GetTileValue(&height_map);
     test_SampleNoiseLayered();
     return 0;
 }
