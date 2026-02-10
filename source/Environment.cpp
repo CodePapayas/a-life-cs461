@@ -5,8 +5,9 @@
 #include "Environment.h"
 #include "MathVector.hpp"
 // Environment Class
-// Responsible for creating, handling, and accessing the simulation environment and it's data.
-// Agents and other simulation entities can access specific data necessary
+// Responsible for creating, handling, and accessing the simulation environment data.
+// Agents and other simulation entities can access specific data necessary through
+// accessing the environment, the desired chunk, and the desired tile in the chunk.
 
 // ------------------------------[TO-DO]------------------------------
 // - Implement perlin noise
@@ -14,43 +15,36 @@
 // - More getters and setters, just cause
 // - Refactor tiles and chunks to remain ungenerated until accessed
 //      - Likely won't be until we get Agent functionality implemented
-// - Stop using so many darn nested loops where possible
 // - Adjust the global variables chunk_amt and tile_amt to be configurable at runtime
 //      - ... and by extent, adjust the "chunks" and "tiles" arrays/vectors/lists to accomodate this
 // - Memory management considerations
 //      - Mainly pointer cleanup on deconstruction
 // - Class method overloads to allow integer parameters instead of Vector2d
 
-// class for holding tile data
+// Tile class, holds environment data at coordinate position.
 class Tile{
 	float value = 0.0f; // currently an arbitrary value for tracking things like noise
 	public:
 		Tile() {
-            value = (float)(rand() % 11) / 10.0f; //placeholder for noise
+            value = (float)(rand() % 11) / 10.0f; //placeholder random value noise
         };
-        float getValue(){return value;};
+        float getValue(){return value;};          //
 };
 
-// class for holding chunk data
-class Chunk{
-    int chunk_id;
-    std::vector<std::vector<Tile*>> tiles; // added vector dep to change up arrays
-    std::unordered_map <int, Vector2d> tile_map;  // key is tile ID, value is a vector2d with the [x][y] position of the tile in the 2d array tiles;
+// Chunk class, holds multiple tiles
+class Chunk{                              
+    std::vector<std::vector<Tile*>> tiles;        // vector array for holding tiles
+    std::unordered_map <int, Vector2d> tile_map;  // key is tile ID, value is a vector2d with the [x][y] position of the tile in the 2d array tiles
     public:
     	Chunk(){
+            int tile_id = 0;
             for(int x = 0; x < tile_amt; x++){
                 std::vector<Tile*> tile_col;
                 for(int y = 0; y < tile_amt; y++){
                     tile_col.push_back(new Tile());
+                    tile_map[tile_id] = Vector2d(x,y);
                 }
                 tiles.push_back(tile_col);
-            }
-        };
-        ~Chunk(){
-            for(int x = 0; x < chunk_amt; x++){
-                for(int y = 0; y < chunk_amt; y++){
-                    delete &tiles[x][y];
-                }
             }
         };	
         Tile *getTile(int x, int y){
@@ -67,7 +61,6 @@ Environment::Environment(){
             int curr_id = chunk_map.size();
             chunk_map[curr_id] = Vector2d(x,y);
             chunk_col.push_back(new Chunk());
-            // chunk_col[y]->chunk_id = curr_id;
         }
         chunks.push_back(chunk_col);
     }
@@ -119,6 +112,8 @@ float Environment::getTileValue(Vector2d pos){
 };
 
 Vector2d Environment::getChunkFromID(int id){
+    // input: int ID; Desired chunk id
+    // output: Vector2d chunk_coord; The coordinate position of the chunk.
     Vector2d *chunk_coord = &chunk_map[id];
     if(chunk_coord){
         return *chunk_coord;
