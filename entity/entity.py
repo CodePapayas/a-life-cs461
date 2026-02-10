@@ -69,11 +69,14 @@ class Entity:
 
     # Brain and biology related functions
 
-    def brain_get_decision(self,inputs):
+    def brain_decide(self,inputs):
         """
         Calls upon the brain to make a decision as to what to do.
         """
-        return self._brain.make_decision(inputs) # need to verify method and needed inputs
+        inputs.append(self.biology_get_health())
+        inputs.append(self.biology_get_energy())
+        inputs.append(self.biology_get_water())
+        return self._brain.decide(inputs) # need to verify method and needed inputs
 
     def biology_add_chemical(self, chem, amount):
         """
