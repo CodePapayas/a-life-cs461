@@ -1,6 +1,6 @@
 import unittest
-from . biology import *
-from entity import *
+from biology import Biology
+from entity import Entity
 #from biology.biology import Biology
 #from biology.biology_constants import *
 
