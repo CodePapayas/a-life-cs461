@@ -1,10 +1,9 @@
 #include "entity.hpp"
 #include <iostream>
 #include <iomanip>
-
-
 #include "biology.hpp"
-// #include "brain.hpp"
+#include "brain.hpp"
+#include "../source/Environment.h"
 
 // Static ID counter for entities
 static long long entity_id_counter = 0;
@@ -31,6 +30,7 @@ void Entity::set_location(const std::any& location)
     _location = location;
 }
 
+
 // ==================== Getters ====================
 
 long long Entity::get_id() const
@@ -48,27 +48,39 @@ std::shared_ptr<Brain> Entity::get_brain() const
     return _brain;
 }
 
+void Entity::set_coordinates(const Vector2d& coords)
+{
+    x = static_cast<int>(coords.x);
+    y = static_cast<int>(coords.y);
+}
+
+Vector2d Entity::get_coordinates() const
+{
+    return Vector2d(x, y); 
+}
+
 std::any Entity::get_location() const
 {
+    //Deprecated at this point
     return _location;
 }
 
 // ==================== Brain Related Methods ====================
 
-std::any Entity::brain_get_decision(const std::any& inputs)
+std::any Entity::brain_get_decision(const std::vector<double>& inputs)
 {
     if (_brain == nullptr)
     {
-        std::cerr << "Warning: Brain is nullptr, cannot make decision" << std::endl;
+        std::cerr << "Warning: Where dat brain at?" << std::endl;
         return std::any();
     }
-    // Call brain's make_decision method
-    // return _brain->make_decision(inputs);
-    return std::any();  // Placeholder
+    // get a decision
+    return std::any(_brain->decide(inputs));
 }
 
 // ==================== Biology Related Methods ====================
 
+// All below Presently untested in the simulation
 void Entity::biology_add_chemical(const std::string& chem, double amount)
 {
     if (_biology == nullptr)
@@ -193,13 +205,14 @@ void Entity::update_biology()
     _biology->update();
 }
 
+// Just a easy way to get all values I guess
 std::unordered_map<std::string, double> Entity::biology_get_metrics()
 {
     std::unordered_map<std::string, double> metrics;
     
     if (_biology == nullptr)
     {
-        std::cerr << "Warning: Biology is nullptr, cannot get metrics" << std::endl;
+        std::cerr << "Warning: It has a face but a no body!" << std::endl;
         return metrics;
     }
 
@@ -220,7 +233,7 @@ std::unordered_map<std::string, double> Entity::biology_get_genetics()
 {
     if (_biology == nullptr)
     {
-        std::cerr << "Warning: Biology is nullptr, cannot get genetics" << std::endl;
+        std::cerr << "Warning: no biology detected" << std::endl;
         return std::unordered_map<std::string, double>();
     }
 
@@ -232,7 +245,7 @@ double Entity::biology_get_genetic_value(const std::string& gene)
 {
     if (_biology == nullptr)
     {
-        std::cerr << "Warning: Biology is nullptr, cannot get genetic value" << std::endl;
+        std::cerr << "Warning: Biology may not have been set" << std::endl;
         return -1.0;
     }
 
@@ -261,7 +274,7 @@ std::pair<double, double> Entity::biology_movement(const std::string& terrain)
 
     if (_biology == nullptr)
     {
-        std::cerr << "Warning: Biology is nullptr, cannot get movement drains" << std::endl;
+        std::cerr << "Warning: There is no biology." << std::endl;
         return std::make_pair(edrain, wdrain);
     }
 

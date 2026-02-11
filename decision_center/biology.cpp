@@ -4,8 +4,9 @@
 #include <random>
 #include <cmath>
 #include <algorithm>
+#include "../source/Environment.h"
 
-// Random number generator (thread-safe singleton)
+// idk, this was a suggestion for implementing randomness.
 static std::random_device rd;
 static std::mt19937 gen(rd());
 static std::uniform_real_distribution<> dis(0.0, 1.0);
@@ -26,12 +27,12 @@ void Biology::set_random_attributes()
 {
     /**
      * Sets the genetic values to random values between 0 and 1
-     * Uses the formula: random() ** 2 to bias towards lower values
+     * Squares the result to bias towards lower values
      */
     for (auto& pair : _genetic_values)
     {
         double random_val = dis(gen);
-        pair.second = random_val * random_val;  // Equivalent to random() ** 2
+        pair.second = random_val * random_val; 
     }
 }
 
@@ -52,11 +53,13 @@ double Biology::get_water() const
     return _water;
 }
 
+// Creates a map of the values, can be accessed like a python dicttionary
 std::unordered_map<std::string, double> Biology::get_efficiencies() const
 {
     return _genetic_values;
 }
 
+// Returns a specific genetic efficiency value, throws an error if not found
 double Biology::get_efficiency(const std::string& efficiency) const
 {
     auto it = _genetic_values.find(efficiency);
@@ -74,11 +77,18 @@ std::unordered_map<std::string, double> Biology::get_genetic_vals() const
 
 // ==================== Setters ====================
 
+void Biology::set_coordinates(const Vector2d& coords)
+{
+    x = static_cast<int>(coords.x);
+    y = static_cast<int>(coords.y);
+}
+
 void Biology::set_efficiencies(const std::unordered_map<std::string, double>& vals)
 {
     _genetic_values = vals;
 }
 
+// Sets specific genetic values
 void Biology::set_efficiency(const std::string& type, double value)
 {
     if (value < 0.0 || value > 1.0)
@@ -107,8 +117,6 @@ void Biology::add_energy(double val)
 
 void Biology::add_water(double val)
 {
-    // NOTE: Original Python had a bug here using _health instead of _water
-    // This corrected version uses _water
     _water = std::min(_water + val, 1.0);
 }
 
@@ -118,7 +126,7 @@ double Biology::eat_energy(double quantity)
 {
     /**
      * Adjusts the energy stores obtained from eating based on the creature's
-     * various efficiencies.
+     * various efficiencies. Does some bs using mass to make bigger creatures more costly to maintain
      */
     double amount = quantity * _genetic_values["Energy Efficiency"];
     amount *= std::pow(1.0 - _genetic_values["Mass"], 0.5);

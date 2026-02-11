@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <any>
 #include <iostream>
+#include <vector>
+#include "../source/MathVector.hpp"
 
 // Forward declarations
 class Biology;
@@ -31,6 +33,9 @@ public:
      * @brief Default constructor for Entity
      */
     Entity();
+
+    int x;
+    int y;
 
     /**
      * @brief Destructor for Entity
@@ -87,10 +92,11 @@ public:
 
     /**
      * @brief Calls upon the brain to make a decision
-     * @param inputs Input data for the brain decision
+     * @param inputs Input data vector for the brain decision
      * @return Decision made by the brain
      */
-    std::any brain_get_decision(const std::any& inputs);
+    std::any brain_get_decision(const std::vector<double>& inputs);
+
 
     // ==================== Biology Related Methods ====================
 
@@ -161,7 +167,26 @@ public:
      * @return True if the organism should die, false otherwise
      */
     bool biology_check_death() const;
+    
+    /**
+     * @brief sets the coordinates on the biology
+     * @param coords The coordinates to set as a Vector2d
+     */
+    void biology_set_coordinates(const Vector2d& coords);
+    
+    /**
+     * @brief Gets the coordinates from the biology
+     * @return The coordinates as a Vector2d
+     */
+    Vector2d biology_get_coordinates() const;
 
+    /**
+     * @brief Returns the coordinates of the organism as a Vector2d
+     */
+    Vector2d get_coordinates() const;
+    
+    void set_coordinates(const Vector2d& coords);
+    
     /**
      * @brief Requests the biology to update itself for a tick
      */
@@ -193,7 +218,7 @@ public:
      */
     std::pair<double, double> biology_movement(const std::string& terrain);
 
-    // ==================== Convenience Methods ====================
+    // ==================== Convenience Methods and Aliases ====================
 
     /**
      * @brief Convenience method to get ID via property-like syntax
@@ -241,13 +266,13 @@ public:
      * @brief Convenience method to get location via property-like syntax
      * @return The location in std::any format
      */
-    std::any cell() const { return get_location(); }
+    std::any cell() const { return get_coordinates(); }
 
     /**
      * @brief Convenience method to get location via property-like syntax
      * @return The location in std::any format
      */
-    std::any location() const { return get_location(); }
+    std::any location() const { return get_coordinates(); }
 };
 
 #endif // ENTITY_HPP

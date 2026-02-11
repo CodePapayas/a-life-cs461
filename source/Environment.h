@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>       // added vector dep to change up arrays
 #include <unordered_map>
+#include "MathVector.hpp"
 
 const int chunk_amt = 3;
 const int tile_amt = 9;

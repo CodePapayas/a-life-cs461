@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include "biology_constants.hpp"
+#include "../source/MathVector.hpp"
 
 /**
  * @class Biology
@@ -29,6 +30,8 @@ public:
      */
     explicit Biology(bool debug = false);
 
+    int x;
+    int y;
     /**
      * @brief Destructor for Biology
      */
@@ -43,6 +46,9 @@ public:
 
     // ==================== Getters ====================
 
+
+    Vector2d get_coordinates() const;
+    void set_coordinates(const Vector2d& coords);
     /**
      * @brief Returns the current health of the organism
      * @return The current health value (0.0 to 1.0)
@@ -196,4 +202,4 @@ public:
     void print_vals() const;
 };
 
-#endif // BIOLOGY_HPP
+#endif
