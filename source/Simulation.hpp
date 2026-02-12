@@ -4,6 +4,7 @@
 #include <vector>
 #include "Environment.h"
 #include "../decision_center/entity.hpp"
+#include "../perception_movement/perception.hpp"
 
 // Forward declarations
 class Brain;
@@ -18,6 +19,7 @@ class Simulation
 private:
     std::unique_ptr<Environment> _environment;
     std::vector<std::unique_ptr<Entity>> _entities;
+    std::unique_ptr<Perception> _perception;
 
 public:
     /**
@@ -40,6 +42,12 @@ public:
      * @return the float value.
      */
     float environGetTileValue(int x, int y) const;
+
+    /**
+     * @brief Returns the perception object for this simulation
+     * @return Pointer to the perception object
+     */
+    std::vector<float> get_perception() const;
 
     /**
      * @brief Returns the first entity (primary entity). Initial sims will only have 1, but I want to have this in place for when we expand.

@@ -1,5 +1,5 @@
 #include "perception.hpp"
-#include "../../a-life-cs461-environment-testing/source/Environment.h"
+#include "../source/Environment.h"
 
 Perception::SensoryInput Perception::perceive_local_tiles(
     int entity_x,
@@ -44,15 +44,7 @@ std::vector<float> Perception::extract_tile_values_in_radius(
                 tile_y >= 0 && tile_y < env_size) {
                 
                 // Get the tile value from the environment
-                // Using the Vector2d class from Environment.cpp
-                class Vector2d {
-                public:
-                    float x;
-                    float y;
-                    Vector2d() { x = 0; y = 0; }
-                    Vector2d(int n_x, int n_y) { x = n_x; y = n_y; }
-                };
-                
+                // Using the Vector2d class from Environment.h
                 Vector2d position(tile_x, tile_y);
                 float tile_value = environment.getTileValue(position);
                 tile_values.push_back(tile_value);

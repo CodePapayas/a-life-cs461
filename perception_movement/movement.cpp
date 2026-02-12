@@ -1,5 +1,5 @@
 #include "movement.hpp"
-#include "../../a-life-cs461-environment-testing/source/Environment.h"
+#include "../source/Environment.h"
 #include <algorithm>
 #include <cmath>
 

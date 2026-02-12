@@ -3,7 +3,9 @@
 #include "../decision_center/entity.hpp"
 #include "../decision_center/brain.hpp"
 #include "../decision_center/biology.hpp"
+#include "../perception_movement/perception.hpp"
 #include <iostream>
+#include <format>
 
 Simulation::Simulation()
     : _environment(nullptr)
@@ -37,6 +39,10 @@ void Simulation::initialize()
 
     // Add entity to the simulation
     _entities.push_back(std::move(entity));
+
+    // Add perception to sim class
+    _perception = std::make_unique<Perception>();
+    std::cout << "Perception module initialized successfully!" << std::endl;
 }
 
 float Simulation::environGetTileValue(int x, int y) const
@@ -51,6 +57,17 @@ Entity* Simulation::get_primary_entity() const
         return nullptr;
     }
     return _entities[0].get();
+}
+
+std::vector<float> Simulation::get_perception() const
+{
+    Perception::SensoryInput val = _perception->perceive_local_tiles(
+        get_primary_entity()->get_coordinates().x,
+        get_primary_entity()->get_coordinates().y,
+        *_environment,
+        2 //(4 * get_primary_entity()->biology_get_genetic_value("Vision")) // Default perception radius
+    );
+    return val.tile_values;
 }
 
 size_t Simulation::get_entity_count() const
@@ -131,8 +148,15 @@ void Simulation::display_environment() const
                     g = (int)((1 - normalized) * 255);
                     b = (int)((1 - normalized) * 255);
                 }
+                //std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                //          << "O "
+                //          << "\033[0m";
+                // Alternative print method, prints the value instead of 0
+                char buffer[20];
+                std::sprintf(buffer,"%.1f", tile_value); 
                 std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                          << "O "
+                          << buffer
+                          << " "
                           << "\033[0m"; 
             }
         }
