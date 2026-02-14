@@ -3,6 +3,7 @@
 #include <cassert>      // for testing
 #include "./source/MathVector.hpp"
 #include "./source/PerlinNoise.hpp"
+#include <iomanip>
 
 void test_DisplayEnvironment(Environment *env){
     std::cout << "Generating environment grid..." << std::endl;
@@ -44,12 +45,18 @@ void test_GetChunkFromID(Environment *env){
 
 void test_SampleNoiseLayered(){
     PerlinNoise2d noise = PerlinNoise2d();
-    noise.SetFrequency(0.01);
-    noise.SetAmplitude(200);
+    double amp = 200.0;
+    noise.SetFrequency(0.05);
+    noise.SetAmplitude(amp);
     noise.SetOctaves(8);
-    for(int y = 0; y < 8; y++){
-        for(int x = 0; x < 8; x++){
-            std::cout << noise.SampleNoiseLayered(Vector2d(x,y)) << "\t ";
+    int size = 16;
+    for(int y = 0; y < size; y++){
+        for(int x = 0; x < size; x++){
+            double noise_val = noise.SampleNoiseLayered(Vector2d(x,y));
+            noise_val += 2 * amp;
+            noise_val /= 2 * amp;
+            noise_val /= 2;
+            std::cout << std::setprecision(1) << noise_val << " ";
         }
         std::cout << std::endl;
     }
