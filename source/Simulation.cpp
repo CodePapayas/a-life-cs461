@@ -4,6 +4,8 @@
 #include "../decision_center/brain.hpp"
 #include "../decision_center/biology.hpp"
 #include "../perception_movement/perception.hpp"
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <format>
 
@@ -79,22 +81,121 @@ int Simulation::pass_perception_to_brain()
         return -1; // Indicate an error
     }
     std::vector<double> perception = get_perception();
-    // Add internal state values to the perception input (for now, just energy and health)
-    perception.push_back(entity->biology_get_metrics()["Energy"]);
-    perception.push_back(entity->biology_get_metrics()["Health"]);
-    perception.push_back(entity->biology_get_metrics()["Water"]);
-    
     // Pass the perception to biology to filter by vision strength
+    float vision_value = entity->biology_get_genetic_value("Vision");
+    int tilesToIgnore = std::max(static_cast<int>(25.0 - (25 * vision_value)), 1); // at max vision (1.0), ignore 0 tiles, at min vision (0.0) ignore 24 tiles (only sees own tile) 
+    std::vector<double> filteredPerception = filter_perception(perception, tilesToIgnore); // Start with just the tile values
+    filteredPerception.push_back(entity->biology_get_metrics()["Energy"]);
+    filteredPerception.push_back(entity->biology_get_metrics()["Health"]);
+    filteredPerception.push_back(entity->biology_get_metrics()["Water"]);
+    std::cout << perception.size() << "vs" << filteredPerception.size() << std::endl;
     // Not yet implemented
     // May work better if we pull vision value and filter here instead of passing in.
     // perception = entity->biology_filter_perception(perception);   
-    int decision = entity->brain_get_decision(perception);
+    int decision = entity->brain_get_decision(filteredPerception);
     return decision;
 }
 
 size_t Simulation::get_entity_count() const
 {
     return _entities.size();
+}
+
+std::vector<double> Simulation::filter_perception(std::vector<double> perception, int tilesToIgnore) const
+{
+    if (perception.empty() || tilesToIgnore <= 0)
+    {
+        return perception;
+    }
+
+    int tile_count = static_cast<int>(perception.size());
+    int tail_count = 0;
+    int grid_size = static_cast<int>(std::sqrt(tile_count));
+
+    if (tile_count >= 3)
+    {
+        tail_count = 3;
+        tile_count -= 3;
+    }
+    
+    if (grid_size % 2 == 0)
+    {
+        return perception;
+    }
+
+    int radius = grid_size / 2;
+    int ignore_count = std::min(tilesToIgnore, tile_count > 0 ? tile_count - 1 : 0);
+    std::vector<bool> ignore(tile_count, false);
+    int ignored = 0;
+
+    auto mark_tile = [&](int rx, int ry) {
+        if (ignored >= ignore_count)
+        {
+            return;
+        }
+        int x = rx + radius;
+        int y = ry + radius;
+        if (x < 0 || y < 0 || x >= grid_size || y >= grid_size)
+        {
+            return;
+        }
+        int idx = x * grid_size + (grid_size - 1 - y);
+        if (idx < tile_count && !ignore[idx])
+        {
+            ignore[idx] = true;
+            ++ignored;
+        }
+    };
+
+    for (int r = radius; r >= 1 && ignored < ignore_count; --r)
+    {
+        // Bottom edge: (0,-r), (-1,-r), (1,-r), ..., (-r,-r), (r,-r)
+        mark_tile(0, -r);
+        for (int i = 1; i <= r && ignored < ignore_count; ++i)
+        {
+            mark_tile(-i, -r);
+            mark_tile(i, -r);
+        }
+
+        // Vertical edges: (-r, y), (r, y) for y = -r+1..r-1
+        for (int y = -r + 1; y <= r - 1 && ignored < ignore_count; ++y)
+        {
+            mark_tile(-r, y);
+            mark_tile(r, y);
+        }
+
+        // Top edge: (-r,r), (r,r), (-(r-1),r), ((r-1),r), ..., (-1,r), (1,r), (0,r)
+        mark_tile(-r, r);
+        mark_tile(r, r);
+        for (int i = r - 1; i >= 1 && ignored < ignore_count; --i)
+        {
+            mark_tile(-i, r);
+            mark_tile(i, r);
+        }
+        mark_tile(0, r);
+    }
+
+    if (ignored < ignore_count)
+    {
+        mark_tile(0, 0);
+    }
+
+    std::vector<double> filtered;
+    filtered.reserve((tile_count - ignored + tail_count));
+    for (int i = 0; i < tile_count; ++i)
+    {
+        if (!ignore[i])
+        {
+            filtered.push_back(perception[i]);
+        }
+    }
+
+    if (tail_count > 0)
+    {
+        filtered.insert(filtered.end(), perception.end() - tail_count, perception.end());
+    }
+
+    return filtered;
 }
 
 void Simulation::biologySetCoordinates(Vector2d coords)

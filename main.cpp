@@ -21,7 +21,9 @@ int main() {
     for(int i = 0; i < 10; i++)
     {
         int decision = sim.pass_perception_to_brain();
-        std::cout << "Brain Chose decided: " << decision << std::endl;
+        int filteredDecision = sim.pass_perception_to_brain();
+        std::cout << "Brain Chose decided: " << decision << std::endl; // Deprecated, maybe add in a decider for the unfiltered perception for testing purposes?
+        std::cout << "Brain decided with filtered perception: " << filteredDecision << std::endl;
     }
     
     // Pull in resources

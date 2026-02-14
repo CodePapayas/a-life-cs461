@@ -93,5 +93,12 @@ public:
      */
     void display_environment() const;
 
+    /**
+     * @brief Gets the vision value of the primary entity, which may be used to filter perception in the future
+     * @return The vision value as a float
+     */
     float get_vision_value() const;
+
+    std::vector<double> filter_perception(std::vector<double> perception, int tilesToIgnore) const;
+
 };
