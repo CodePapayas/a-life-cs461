@@ -44,7 +44,7 @@ void test_GetChunkFromID(Environment *env){
 
 void test_SampleNoiseLayered(){
     PerlinNoise2d noise = PerlinNoise2d();
-    noise.SetFrequency(1);
+    noise.SetFrequency(0.01);
     noise.SetAmplitude(200);
     noise.SetOctaves(8);
     for(int y = 0; y < 8; y++){

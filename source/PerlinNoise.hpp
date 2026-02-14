@@ -66,6 +66,8 @@ class PerlinNoise2d{
 			// Generates the list of permutation values for the noise to sample from.
 			// If a custom "p" is utilized instead of this function, the noise will be unchanged each run, like it was "seeded".
 
+			std::cout << "Generating permutation table...\n";
+
 			// generate a list of valuese from [0, p_table_size)
 			for(int i = 0; i < p_table_size; i++){
 				p.push_back((double)i);
