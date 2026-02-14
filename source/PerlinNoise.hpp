@@ -166,6 +166,12 @@ class PerlinNoise2d{
 			return curr_sample;
 		}
 
+		double SampleNoiseNormalized(Vector2d pos){
+			double noise_val = SampleNoiseLayered(pos);
+            noise_val += 2 * amplitude;
+            noise_val /= 4 * amplitude;
+		}
+
 		void SetOctaves(int o)		{octaves = o;}
 		void SetFrequency(double f)	{frequency = f;}
 		void SetAmplitude(double a)	{amplitude = a;}

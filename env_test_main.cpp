@@ -52,10 +52,7 @@ void test_SampleNoiseLayered(){
     int size = 16;
     for(int y = 0; y < size; y++){
         for(int x = 0; x < size; x++){
-            double noise_val = noise.SampleNoiseLayered(Vector2d(x,y));
-            noise_val += 2 * amp;
-            noise_val /= 2 * amp;
-            noise_val /= 2;
+            double noise_val = noise.SampleNoiseNormalized(Vector2d(x,y));
             std::cout << std::setprecision(1) << noise_val << " ";
         }
         std::cout << std::endl;
