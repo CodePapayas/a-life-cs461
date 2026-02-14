@@ -67,15 +67,15 @@ std::any Entity::get_location() const
 
 // ==================== Brain Related Methods ====================
 
-std::any Entity::brain_get_decision(const std::vector<double>& inputs)
+int Entity::brain_get_decision(const std::vector<double>& inputs)
 {
     if (_brain == nullptr)
     {
         std::cerr << "Warning: Where dat brain at?" << std::endl;
-        return std::any();
+        return -1;
     }
     // get a decision
-    return std::any(_brain->decide(inputs));
+    return _brain->decide(inputs);
 }
 
 // ==================== Biology Related Methods ====================

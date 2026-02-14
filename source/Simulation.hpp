@@ -47,7 +47,13 @@ public:
      * @brief Returns the perception object for this simulation
      * @return Pointer to the perception object
      */
-    std::vector<float> get_perception() const;
+    std::vector<double> get_perception() const;
+
+    /**
+     * @brief Sends perception plus internal state to the entity brain and returns a decision code
+     * @return The decision code, or -1 on error
+     */
+    int pass_perception_to_brain();
 
     /**
      * @brief Returns the first entity (primary entity). Initial sims will only have 1, but I want to have this in place for when we expand.
@@ -86,4 +92,6 @@ public:
      * Entities are displayed as white "X"s
      */
     void display_environment() const;
+
+    float get_vision_value() const;
 };

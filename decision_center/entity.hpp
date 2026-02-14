@@ -95,7 +95,7 @@ public:
      * @param inputs Input data vector for the brain decision
      * @return Decision made by the brain
      */
-    std::any brain_get_decision(const std::vector<double>& inputs);
+    int brain_get_decision(const std::vector<double>& inputs);
 
 
     // ==================== Biology Related Methods ====================

@@ -23,8 +23,8 @@ void Simulation::initialize()
     std::cout << "Entity created successfully with ID: " << entity->get_id() << std::endl;
     entity->set_coordinates(Vector2d(5, 5)); // Set initial coordinates for the entity
     // Create a brain with a neural network architecture
-    // Architecture: 4 inputs -> 8 hidden -> 8 hidden -> 6 outputs
-    std::vector<int> layer_sizes = {4, 8, 8, 6};
+    // Architecture: 28 inputs -> 8 hidden -> 8 hidden -> 6 outputs
+    std::vector<int> layer_sizes = {28, 8, 8, 6}; // 28 because perception size is 5x5 and then the entity's internal state (3 values for now)
     auto brain = std::make_shared<Brain>(layer_sizes);
     std::cout << "Brain created successfully with " << brain->get_layer_count() << " layers!" << std::endl;
 
@@ -59,7 +59,7 @@ Entity* Simulation::get_primary_entity() const
     return _entities[0].get();
 }
 
-std::vector<float> Simulation::get_perception() const
+std::vector<double> Simulation::get_perception() const
 {
     Perception::SensoryInput val = _perception->perceive_local_tiles(
         get_primary_entity()->get_coordinates().x,
@@ -68,6 +68,28 @@ std::vector<float> Simulation::get_perception() const
         2 //(4 * get_primary_entity()->biology_get_genetic_value("Vision")) // Default perception radius
     );
     return val.tile_values;
+}
+
+int Simulation::pass_perception_to_brain()
+{
+    auto entity = get_primary_entity();
+    if (!entity)
+    {
+        std::cerr << "No primary entity found for perception to brain!" << std::endl;
+        return -1; // Indicate an error
+    }
+    std::vector<double> perception = get_perception();
+    // Add internal state values to the perception input (for now, just energy and health)
+    perception.push_back(entity->biology_get_metrics()["Energy"]);
+    perception.push_back(entity->biology_get_metrics()["Health"]);
+    perception.push_back(entity->biology_get_metrics()["Water"]);
+    
+    // Pass the perception to biology to filter by vision strength
+    // Not yet implemented
+    // May work better if we pull vision value and filter here instead of passing in.
+    // perception = entity->biology_filter_perception(perception);   
+    int decision = entity->brain_get_decision(perception);
+    return decision;
 }
 
 size_t Simulation::get_entity_count() const
@@ -164,6 +186,20 @@ void Simulation::display_environment() const
     }
     std::cout << "\n=== End Environment Display ===\n" << std::endl;
 }
+
+float Simulation::get_vision_value() const
+{
+    auto entity = get_primary_entity();
+    if (entity)
+    {
+        return entity->biology_get_genetic_value("Vision");
+    }
+    else
+    {
+        std::cerr << "No primary entity found to get vision value!" << std::endl;
+        return 0.0f; // Default vision value if no entity is found
+    }
+  } 
 
 void Simulation::testAccess()
 {

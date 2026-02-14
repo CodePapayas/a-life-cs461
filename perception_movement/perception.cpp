@@ -21,13 +21,13 @@ Perception::SensoryInput Perception::perceive_local_tiles(
     return sensory;
 }
 
-std::vector<float> Perception::extract_tile_values_in_radius(
+std::vector<double> Perception::extract_tile_values_in_radius(
     int center_x,
     int center_y,
     Environment& environment,
     int radius) {
     
-    std::vector<float> tile_values;
+    std::vector<double> tile_values;
     
     // Calculate the total environment size
     int env_size = environment.getChunksInEnvironment() * environment.getTilesPerChunk();
@@ -46,11 +46,11 @@ std::vector<float> Perception::extract_tile_values_in_radius(
                 // Get the tile value from the environment
                 // Using the Vector2d class from Environment.h
                 Vector2d position(tile_x, tile_y);
-                float tile_value = environment.getTileValue(position);
+                double tile_value = environment.getTileValue(position);
                 tile_values.push_back(tile_value);
             } else {
                 // Outside bounds - use a default value (e.g., 0.0)
-                tile_values.push_back(0.0f);
+                tile_values.push_back(0.0);
             }
         }
     }
@@ -70,13 +70,13 @@ Perception::SensoryInput Perception::perceive_local_environment(
 
     // Simple placeholder implementation for backward compatibility
     // Convert difficulty map format to tile values
-    std::vector<float> features;
+    std::vector<double> features;
     
     if (!difficulty_map.empty() && entity_y < difficulty_map.size() && 
         entity_x < difficulty_map[entity_y].size()) {
-        features.push_back(static_cast<float>(difficulty_map[entity_y][entity_x]));
+        features.push_back(static_cast<double>(difficulty_map[entity_y][entity_x]));
     } else {
-        features.push_back(0.5f);
+        features.push_back(0.5);
     }
     
     sensory.tile_values = features;

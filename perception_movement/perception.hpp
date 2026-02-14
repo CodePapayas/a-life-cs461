@@ -16,7 +16,7 @@ public:
      * Contains tile values in a radius around the agent and the agent's position
      */
     struct SensoryInput {
-        std::vector<float> tile_values;  // Float values from tiles in perception radius
+        std::vector<double> tile_values;  // Float values from tiles in perception radius
         int entity_x;                    // Agent's current X position
         int entity_y;                    // Agent's current Y position
         int perception_radius;           // Radius used for perception
@@ -57,7 +57,7 @@ private:
      * @param radius - Perception radius
      * @return Vector of tile values in the perception area
      */
-    static std::vector<float> extract_tile_values_in_radius(
+    static std::vector<double> extract_tile_values_in_radius(
         int center_x,
         int center_y,
         Environment& environment,
