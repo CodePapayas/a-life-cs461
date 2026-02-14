@@ -170,6 +170,7 @@ class PerlinNoise2d{
 			double noise_val = SampleNoiseLayered(pos);
             noise_val += 2 * amplitude;
             noise_val /= 4 * amplitude;
+			return noise_val;
 		}
 
 		void SetOctaves(int o)		{octaves = o;}
