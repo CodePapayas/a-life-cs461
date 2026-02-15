@@ -35,10 +35,12 @@ class Tile{
 
 // constructor for environment
 // currently, generates the whole chunk grid
-Environment::Environment(){
-    for(int x = 0; x < tile_amt; x++){
+Environment::Environment(int size_x, int size_y){
+    _size_x = size_x;
+    _size_y = size_y;
+    for(int x = 0; x < _size_x; x++){
         std::vector<Tile*> tile_col;
-        for(int y = 0; y < tile_amt; y++){
+        for(int y = 0; y < _size_y; y++){
             int curr_id = tile_map.size();
             tile_map[curr_id] = Vector2d(x,y);
             tile_col.push_back(new Tile({(double)(rand() % 11) / 10.0}));
@@ -54,15 +56,15 @@ Vector2d Environment::boundCoords(Vector2d pos){
     // Input: Vector2d pos;
     // Ouput: Vector2d tile_pos;
     
-    int tile_x = 	pos.x;
-    int tile_y = 	pos.y;
+    int tile_x = pos.x;
+    int tile_y = pos.y;
 
-    if (tile_x < 0)                {tile_x = 0;}
-    else if (tile_x >= tile_amt)  {tile_x = tile_amt - 1;}
-    if (tile_y < 0)                {tile_y = 0;}
-    else if (tile_y >= tile_amt)  {tile_y = tile_amt - 1;}
+    tile_x = (tile_x < 0) ? 0 : tile_x;
+    tile_x = (tile_x < _size_x) ? tile_x : (_size_x - 1);
+    tile_y = (tile_y < 0) ? 0 : tile_y;
+    tile_y = (tile_y < _size_y) ? tile_y : (_size_y - 1);
 
-    Vector2d tile_pos =		Vector2d(tile_x, tile_y);
+    Vector2d tile_pos =	Vector2d(tile_x, tile_y);
     
     return tile_pos;
 }

@@ -23,7 +23,7 @@ void test_GetTileValue(Environment *env){
     std::cout << "Below zero..." << std::endl;
     std::cout << env->getTileValues(Vector2d(0,-1))[0] << "\t ";
     std::cout << env->getTileValues(Vector2d(-1, 0))[0] << "\t ";
-    std::cout << env->getTileValues(Vector2d(-1,-1))[0] << "\t ";
+    std::cout << env->getTileValues(Vector2d(-1,-1))[0] << "\t\n";
     std::cout << "Above limit..." << std::endl;
     std::cout << env->getTileValues(Vector2d(0, sqrt(tiles)))[0] << "\t ";
     std::cout << env->getTileValues(Vector2d(sqrt(tiles), 0))[0] << "\t ";
@@ -43,16 +43,34 @@ void test_GetChunkFromID(Environment *env){
     }
 }
 
-void test_SampleNoiseLayered(){
+void test_SampleNormalized(){
     PerlinNoise2d noise = PerlinNoise2d();
     double amp = 200.0;
     noise.SetFrequency(0.05);
     noise.SetAmplitude(amp);
     noise.SetOctaves(8);
-    int size = 16;
+    int size = 32;
     for(int y = 0; y < size; y++){
         for(int x = 0; x < size; x++){
-            double noise_val = noise.SampleNoiseNormalized(Vector2d(x,y));
+            double noise_val = noise.SampleNormalized(Vector2d(x,y));
+            noise_val = round(10.0 * noise_val) / 10.0;
+            std::cout << std::setprecision(1) << noise_val << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void test_SampleNormalized_Seeded(){
+    PerlinNoise2d noise = PerlinNoise2d(101);
+    double amp = 200.0;
+    noise.SetFrequency(0.05);
+    noise.SetAmplitude(amp);
+    noise.SetOctaves(8);
+    int size = 32;
+    for(int y = 0; y < size; y++){
+        for(int x = 0; x < size; x++){
+            double noise_val = noise.SampleNormalized(Vector2d(x,y));
+            noise_val = round(10.0 * noise_val) / 10.0;
             std::cout << std::setprecision(1) << noise_val << " ";
         }
         std::cout << std::endl;
@@ -60,10 +78,12 @@ void test_SampleNoiseLayered(){
 }
 
 int main(){
-    Environment height_map; // generates a 2d array of normalized floats
+    Environment height_map = Environment(16,16); // generates a 2d array of normalized floats
     test_DisplayEnvironment(&height_map);
     test_GetChunkFromID(&height_map);
     test_GetTileValue(&height_map);
-    test_SampleNoiseLayered();
+    test_SampleNormalized();
+    test_SampleNormalized_Seeded();
+    test_SampleNormalized_Seeded();
     return 0;
 }

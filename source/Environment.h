@@ -20,15 +20,17 @@ class Chunk;
 class Environment
 {
 private:
-    int tile_amt = 9;
+    int _size_x;
+    int _size_y;
     std::vector<std::vector<Tile*>> tiles;    
     std::unordered_map <int, Vector2d> tile_map; // get the X,Y for it for simplicity
 public:
-    Environment();
+    Environment(int size_x, int size_y);
     Vector2d boundCoords(Vector2d pos);
     std::vector<double> getTileValues(Vector2d pos);
-    void setTileAmount(int a) {tile_amt = a;};
-    int getTileAmountSquared() {return tile_amt * tile_amt;};
+    int getTileAmountX() {return tiles.size();};
+    int getTileAmountY() {return tiles[0].size();};
+    int getTileAmountSquared() {return tiles[0].size() * tiles.size();};
     Vector2d getTileFromID(int id);
 };
 
