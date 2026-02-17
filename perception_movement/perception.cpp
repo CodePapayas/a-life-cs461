@@ -36,8 +36,8 @@ std::vector<double> Perception::extract_tile_values_in_radius(
     // Goes from (center_x - radius) to (center_x + radius)
     for (int dx = -radius; dx <= radius; dx++) {
         for (int dy = -radius; dy <= radius; dy++) {
-            int tile_x = center_x + dx;
-            int tile_y = center_y + dy;
+            int tile_x = (center_x + dx + env_size) % env_size; // Wrap around horizontally
+            int tile_y = (center_y + dy + env_size) % env_size; // Wrap around vertically
             
             // Check if the tile is within environment bounds
             if (tile_x >= 0 && tile_x < env_size && 

@@ -3,7 +3,7 @@
   Oregon State University
   CS 462 
 */
-#include "../include/resource_node.h"
+#include "resource_node.h"
 #include <algorithm>
 #include <limits>
 

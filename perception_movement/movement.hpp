@@ -57,6 +57,18 @@ public:
     );
 
     /**
+     * Execute movement with wraparound (toroidal) environment
+     * @param current_x - Agent's current X position (will be updated)
+     * @param current_y - Agent's current Y position (will be updated)
+     * @param action - The action to execute
+     * @param env_width - Environment width
+     * @param env_height - Environment height
+     * @param energy - Agent's current energy (will be updated)
+     * @return true if movement was successful, false if blocked
+     */
+    static std::vector<int> execute_movement_wraparound(int &current_x, int &current_y, const Action &action, int env_width, int env_height, double &energy);
+
+    /**
      * Legacy version with explicit width/height parameters
      * @param current_x - Agent's current X position (will be updated)
      * @param current_y - Agent's current Y position (will be updated)

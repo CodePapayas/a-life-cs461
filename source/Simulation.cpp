@@ -4,6 +4,7 @@
 #include "../decision_center/brain.hpp"
 #include "../decision_center/biology.hpp"
 #include "../perception_movement/perception.hpp"
+#include "../perception_movement/movement.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -23,7 +24,7 @@ void Simulation::initialize()
     // Create an entity
     auto entity = std::make_unique<Entity>();
     std::cout << "Entity created successfully with ID: " << entity->get_id() << std::endl;
-    entity->set_coordinates(Vector2d(5, 5)); // Set initial coordinates for the entity
+    entity->set_coordinates(Vector2d(0, 0)); // Set initial coordinates for the entity
     // Create a brain with a neural network architecture
     // Architecture: 28 inputs -> 8 hidden -> 8 hidden -> 6 outputs
     std::vector<int> layer_sizes = {28, 8, 8, 6}; // 28 because perception size is 5x5 and then the entity's internal state (3 values for now)
@@ -89,12 +90,60 @@ int Simulation::pass_perception_to_brain()
     filteredPerception.push_back(entity->biology_get_metrics()["Health"]);
     filteredPerception.push_back(entity->biology_get_metrics()["Water"]);
     std::cout << perception.size() << "vs" << filteredPerception.size() << std::endl;
-    // Not yet implemented
-    // May work better if we pull vision value and filter here instead of passing in.
-    // perception = entity->biology_filter_perception(perception);   
     int decision = entity->brain_get_decision(filteredPerception);
     return decision;
 }
+
+void Simulation::interpret_decision(int decision_code)
+{
+    switch (static_cast<DecisionCodes>(decision_code))
+    {
+        case DecisionCodes::MOVE_UP:
+            std::cout << "Entity moves up." << std::endl;
+            Simulation::execute_movement(decision_code);
+            break;
+        case DecisionCodes::MOVE_DOWN:
+            std::cout << "Entity moves down." << std::endl;
+            Simulation::execute_movement(decision_code);
+            break;
+        case DecisionCodes::MOVE_LEFT:
+            std::cout << "Entity moves left." << std::endl;
+            Simulation::execute_movement(decision_code);    
+            break;
+        case DecisionCodes::MOVE_RIGHT:
+            std::cout << "Entity moves right." << std::endl;
+            Simulation::execute_movement(decision_code);
+            break;
+        case DecisionCodes::STAY_STILL:
+            std::cout << "Entity stays still." << std::endl;
+            // Logic for the entity staying still would go here (probably nothing)
+            break;
+        case DecisionCodes::CONSUME:
+            std::cout << "Entity consumes resources." << std::endl;
+            // Logic for consuming resources in current tile would go here
+            break;
+        default:
+            std::cerr << "Unknown decision code: " << decision_code << std::endl;
+    }
+}
+
+void Simulation::execute_movement(int direction){
+    // Placeholder for movement execution logic based on the direction decided by the brain
+    // This would involve updating the entity's coordinates and applying any relevant energy costs or terrain effects
+
+    // First create a movement struct
+    Movement::Action action = Movement::direction_to_action(static_cast<Movement::Direction>(direction), 0); // For now, keeping base energy at 0
+    auto entity = get_primary_entity();
+    int prev_x = entity->x;
+    int prev_y = entity->y;
+    // Fetch the new coordinates and update the entity's position
+    std::vector<int> new_coords = Movement::execute_movement_wraparound(entity->x, entity->y, action, chunk_amt * tile_amt, chunk_amt * tile_amt, entity->biology_get_metrics()["Energy"]);
+    entity->set_coordinates(Vector2d(new_coords[0], new_coords[1]));
+    std::cout << "Entity moved from (" << prev_x << ", " << prev_y << ") to (" << entity->x << ", " << entity->y << ")" << std::endl;
+    // Need to drain energy based on the terrain type of the new tile and the entity's biology
+    //entity->biology_movement(_environment->getTileType(Vector2d(entity->x, entity->y))); // Something like this in practice
+    entity->biology_movement("Terrain 1"); // Placeholder until we have actual terrain types implemented
+}   
 
 size_t Simulation::get_entity_count() const
 {

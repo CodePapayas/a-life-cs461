@@ -37,6 +37,7 @@ public:
      */
     void initialize();
 
+    enum DecisionCodes {MOVE_UP=0, MOVE_DOWN=1, MOVE_LEFT=2, MOVE_RIGHT=3, STAY_STILL=4, CONSUME=5};
     /**
      * @brief Returns the value of the tile located at (x,y)
      * @return the float value.
@@ -60,6 +61,10 @@ public:
      * @return Pointer to the first entity
      */
     Entity* get_primary_entity() const;
+
+    void interpret_decision(int decision_code);
+
+    void execute_movement(int direction);
 
     /**
      * @brief Returns number of entities in the simulation. Surpisingly helpful in diagnosing bugs.

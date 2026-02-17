@@ -48,6 +48,7 @@ std::shared_ptr<Brain> Entity::get_brain() const
     return _brain;
 }
 
+// Why the hell did I make this a 2d vector?
 void Entity::set_coordinates(const Vector2d& coords)
 {
     x = static_cast<int>(coords.x);

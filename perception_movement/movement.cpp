@@ -107,37 +107,42 @@ bool Movement::execute_movement(
     return true;
 }
 
-bool Movement::execute_movement(
+std::vector<int> Movement::execute_movement_wraparound(
     int& current_x,
     int& current_y,
     const Action& action,
     int env_width,
     int env_height,
     double& energy) {
-
+    
+    std::vector<int> prev_coords = {current_x, current_y};
     // Calculate new position
-    int new_x = current_x + action.dx;
-    int new_y = current_y + action.dy;
+    int new_x = (current_x + action.dx) % env_width;
+    int new_y = (current_y + action.dy) % env_height;
+
+    // Handle negative wraparound
+    if (new_x < 0) new_x += env_width;
+    if (new_y < 0) new_y += env_height;
 
     // Check if new position is within bounds
     if (new_x < 0 || new_x >= env_width || new_y < 0 || new_y >= env_height) {
         // Invalid move - stay in place but still consume energy
         energy -= action.energy_cost * 0.5; // Half energy cost for failed move
-        return false;
+        return prev_coords;
     }
 
     // Check if agent has enough energy
     if (energy < action.energy_cost) {
         // Not enough energy - cannot move
-        return false;
+        return prev_coords;
     }
 
     // Execute the movement
     current_x = new_x;
     current_y = new_y;
     energy -= action.energy_cost;
-
-    return true;
+    std::vector<int> new_coords = {current_x, current_y};
+    return new_coords;
 }
 
 bool Movement::is_valid_position(int x, int y, Environment& environment) {
