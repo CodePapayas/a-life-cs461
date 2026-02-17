@@ -9,6 +9,7 @@
 // Forward declarations
 class Brain;
 class Biology;
+class ResourceManager;
 
 /**
  * @class Simulation
@@ -20,6 +21,7 @@ private:
     std::unique_ptr<Environment> _environment;
     std::vector<std::unique_ptr<Entity>> _entities;
     std::unique_ptr<Perception> _perception;
+    std::unique_ptr<ResourceManager> _resource_manager;
 
 public:
     /**
@@ -30,12 +32,14 @@ public:
     /**
      * @brief Destructor for the simulation
      */
-    ~Simulation() = default;
+    ~Simulation();
 
     /**
      * @brief Initializes the simulation with environment, entity, and brain. Currently all randos
      */
     void initialize();
+
+    void seed_resources();
 
     enum DecisionCodes {MOVE_UP=0, MOVE_DOWN=1, MOVE_LEFT=2, MOVE_RIGHT=3, STAY_STILL=4, CONSUME=5};
     /**
@@ -65,6 +69,8 @@ public:
     void interpret_decision(int decision_code);
 
     void execute_movement(int direction);
+
+    int tick();
 
     /**
      * @brief Returns number of entities in the simulation. Surpisingly helpful in diagnosing bugs.

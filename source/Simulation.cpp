@@ -5,6 +5,7 @@
 #include "../decision_center/biology.hpp"
 #include "../perception_movement/perception.hpp"
 #include "../perception_movement/movement.hpp"
+#include "resource_node.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -14,6 +15,8 @@ Simulation::Simulation()
     : _environment(nullptr)
 {
 }
+
+Simulation::~Simulation() = default;
 
 void Simulation::initialize()
 {
@@ -46,7 +49,31 @@ void Simulation::initialize()
     // Add perception to sim class
     _perception = std::make_unique<Perception>();
     std::cout << "Perception module initialized successfully!" << std::endl;
+
+    // Add resource manager
+    _resource_manager = std::make_unique<ResourceManager>();
+    seed_resources();
+    std::cout << "Resource manager initialized successfully!" << std::endl;
 }
+
+void Simulation::seed_resources()
+{
+    // Example of seeding some resources in the environment
+    for (int x =0; x < _environment->getChunksInEnvironment() * _environment->getTilesPerChunk(); x += 1) {
+        for (int y = 0; y < _environment->getChunksInEnvironment() * _environment->getTilesPerChunk(); y += 1) {
+            float randomValue = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+            if (randomValue > 0.9){ // 10% chance to create a resource
+                ResourceType type = static_cast<ResourceType>(rand() % 2); // Randomly choose a resource type
+                double energyValue = static_cast<double>(rand()) / static_cast<double>(RAND_MAX); // Random energy value between 0 and 1
+                bool renewable = (rand() % 2) == 0; // Randomly decide if it's renewable
+                _resource_manager->createResource(Position(x, y), type, energyValue, renewable);
+                std::cout << "Seeded resource at (" << x << ", " << y << ") with energy " << energyValue 
+                          << " and type " << (type == ResourceType::FOOD ? "FOOD" : "WATER") 
+                          << (renewable ? " (Renewable)" : " (Non-renewable)") << std::endl;
+            }
+        }
+    }
+}   
 
 float Simulation::environGetTileValue(int x, int y) const
 {
@@ -81,15 +108,20 @@ int Simulation::pass_perception_to_brain()
         std::cerr << "No primary entity found for perception to brain!" << std::endl;
         return -1; // Indicate an error
     }
+    // Get the value of all tiles
     std::vector<double> perception = get_perception();
-    // Pass the perception to biology to filter by vision strength
+
+    // Get the strength of the entities vision and determine how many tiles to ignore
     float vision_value = entity->biology_get_genetic_value("Vision");
     int tilesToIgnore = std::max(static_cast<int>(25.0 - (25 * vision_value)), 1); // at max vision (1.0), ignore 0 tiles, at min vision (0.0) ignore 24 tiles (only sees own tile) 
+    
+    // Get the filtered values based on the vision strength and add intetnal metrics
     std::vector<double> filteredPerception = filter_perception(perception, tilesToIgnore); // Start with just the tile values
     filteredPerception.push_back(entity->biology_get_metrics()["Energy"]);
     filteredPerception.push_back(entity->biology_get_metrics()["Health"]);
     filteredPerception.push_back(entity->biology_get_metrics()["Water"]);
-    std::cout << perception.size() << "vs" << filteredPerception.size() << std::endl;
+
+    // Get the decision from the brain
     int decision = entity->brain_get_decision(filteredPerception);
     return decision;
 }
@@ -144,6 +176,22 @@ void Simulation::execute_movement(int direction){
     //entity->biology_movement(_environment->getTileType(Vector2d(entity->x, entity->y))); // Something like this in practice
     entity->biology_movement("Terrain 1"); // Placeholder until we have actual terrain types implemented
 }   
+
+int Simulation::tick(){
+    // Get the perception for the primary entity and pass it to the brain to get a decision
+    std::vector<double> perception = get_perception();
+    int decision = pass_perception_to_brain();
+    interpret_decision(decision);
+    get_primary_entity()->update_biology(); // Handle biology updates like energy drain, health regen, etc.
+    display_environment();
+    bool entity_dead = get_primary_entity()->biology_check_death();
+    if (entity_dead) {
+        std::cout << "Entity has died. Ending simulation." << std::endl;
+        // In a more complex simulation, we might want to remove the entity and continue
+        return -1;
+    }
+    return 0; // Return 0 to indicate the tick completed successfully
+}
 
 size_t Simulation::get_entity_count() const
 {
@@ -297,8 +345,16 @@ void Simulation::display_environment() const
             {
                 // Display entity as white x
                 std::cout << "\033[97m"  // White color
-                          << "X "
+                          << "  X "
                           << "\033[0m"; // Reset color
+            }
+            else if(!_resource_manager->findResourcesInRange(Position(x, y), 0).empty()) // Check if there's a resource at this location
+            {
+                // Display resource as green R
+                std::cout << "\033[92m"  // Green color
+                          << "  R "
+                          << "\033[0m"; // Reset color
+
             }
             else
             {

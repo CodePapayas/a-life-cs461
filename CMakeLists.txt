@@ -19,6 +19,7 @@ set(MAIN_SOURCES
     main.cpp
     source/Simulation.cpp
     source/Environment.cpp
+    source/resource_node.cpp
 )
 
 add_executable(main_exe
