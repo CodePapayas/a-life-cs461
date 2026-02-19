@@ -3,7 +3,7 @@
 #include <iomanip>
 #include "biology.hpp"
 #include "brain.hpp"
-#include "../source/Environment.h"
+#include "../../environment/Environment.h"
 
 // Static ID counter for entities
 static long long entity_id_counter = 0;

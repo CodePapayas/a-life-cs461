@@ -1,5 +1,5 @@
 #include <iostream>
-#include "source/Simulation.hpp"
+#include "source/simulation/Simulation.hpp"
 
 int main() {
     // Create and initialize the simulation

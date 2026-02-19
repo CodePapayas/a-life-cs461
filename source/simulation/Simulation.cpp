@@ -1,11 +1,11 @@
 #include "Simulation.hpp"
-#include "Environment.h"
-#include "../decision_center/entity.hpp"
-#include "../decision_center/brain.hpp"
-#include "../decision_center/biology.hpp"
+#include "../environment/Environment.h"
+#include "../../entity/decision_center/entity.hpp"
+#include "../../entity/decision_center/brain.hpp"
+#include "../../entity/decision_center/biology.hpp"
 #include "../perception_movement/perception.hpp"
 #include "../perception_movement/movement.hpp"
-#include "resource_node.h"
+#include "../environment/resource_node.h"
 #include <algorithm>
 #include <cmath>
 #include <iostream>

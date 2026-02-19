@@ -2,9 +2,9 @@
 
 #include <memory>
 #include <vector>
-#include "Environment.h"
-#include "../decision_center/entity.hpp"
-#include "../perception_movement/perception.hpp"
+#include "../environment/Environment.h"
+#include "../entity/decision_center/entity.hpp"
+#include "../entity/perception_movement/perception.hpp"
 
 // Forward declarations
 class Brain;

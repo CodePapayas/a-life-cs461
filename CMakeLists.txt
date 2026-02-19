@@ -5,33 +5,37 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Add subdirectories for modules
-add_subdirectory(decision_center)
+set(DECISION_CENTER_SOURCES
+    source/entity/decision_center/brain.cpp
+    source/entity/decision_center/entity.cpp
+    source/entity/decision_center/biology.cpp
+)
 
 # Perception and Movement sources
 set(PERCEPTION_MOVEMENT_SOURCES
-    perception_movement/perception.cpp
-    perception_movement/movement.cpp
+    source/entity/perception_movement/perception.cpp
+    source/entity/perception_movement/movement.cpp
 )
 
 # Main sources
 set(MAIN_SOURCES
     main.cpp
-    source/Simulation.cpp
-    source/Environment.cpp
-    source/resource_node.cpp
+    source/simulation/Simulation.cpp
+    source/environment/Environment.cpp
+    source/environment/resource_node.cpp
 )
 
-add_executable(main_exe
+add_executable(main
     ${MAIN_SOURCES}
     ${PERCEPTION_MOVEMENT_SOURCES}
+    ${DECISION_CENTER_SOURCES}
 )
 
 # Include directories
 include_directories(
-    ${PROJECT_SOURCE_DIR}/decision_center
-    ${PROJECT_SOURCE_DIR}/perception_movement
+    ${PROJECT_SOURCE_DIR}/source/entity/decision_center
     ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/source/entity/perception_movement
 )
 
 # Link decision_center static library
