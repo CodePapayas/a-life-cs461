@@ -1,4 +1,4 @@
-Kai Lindskog
+Kai Lindskog, Zachary Wilkins-Olson, Zachary Sherman, Shane Bliss, Dillon Stickler
 Oregon State University
 CS 462
 
