@@ -1,11 +1,11 @@
 #include "Simulation.hpp"
 #include "../environment/Environment.h"
 #include "../environment/PerlinNoise.hpp"
-#include "../../entity/decision_center/entity.hpp"
-#include "../../entity/decision_center/brain.hpp"
-#include "../../entity/decision_center/biology.hpp"
-#include "../perception_movement/perception.hpp"
-#include "../perception_movement/movement.hpp"
+#include "../entity/decision_center/entity.hpp"
+#include "../entity/decision_center/brain.hpp"
+#include "../entity/decision_center/biology.hpp"
+#include "../entity/perception_movement/perception.hpp"
+#include "../entity/perception_movement/movement.hpp"
 #include "../environment/resource_node.h"
 #include <algorithm>
 #include <cmath>
@@ -26,14 +26,15 @@ void Simulation::initialize()
     _environment = std::make_unique<Environment>(size, size);
     std::cout << "Environment created successfully!" << std::endl;
 
-    PerlinNoise2d _perlin = PerlinNoise2d(0.01, 1.0, 8);
+    PerlinNoise2d _perlin = PerlinNoise2d(1234, 0.01, 1.0, 8);
     std::cout << "Perlin noise generated!" << std::endl;
     
     // super hackey, will work on actually integrating noise proper into env.
     for(int x = 0; x < _environment->getTileAmountX(); x++){
         for(int y = 0; y < _environment->getTileAmountY(); y++){
             Vector2d pos = Vector2d(x,y);
-            _environment->setTileValue(pos, _perlin.SampleLayered(pos), 0);
+            double curr_noise_val = _perlin.SampleLayered(pos);
+            _environment->setTileValue(pos, curr_noise_val, 0);
         }
     }
     std::cout << "Environment noise loaded!" << std::endl;
@@ -381,7 +382,7 @@ void Simulation::display_environment() const
 
                 //normalized = tile_value;
 
-                bool aesthetic = false;
+                bool aesthetic = true;
                 if(aesthetic){
                     if(normalized < 0.33){
                         std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"

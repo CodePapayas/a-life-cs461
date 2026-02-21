@@ -15,7 +15,7 @@ class Vector2d{
 		double x;
 		double y;
 		Vector2d(){x = 0; y = 0;}
-		Vector2d(int n_x, int n_y){x = n_x; y = n_y;}
+		Vector2d(double n_x, double n_y){x = n_x; y = n_y;}
 		double dot(Vector2d other) {return (x * other.x + y * other.y);} 
 };
 
