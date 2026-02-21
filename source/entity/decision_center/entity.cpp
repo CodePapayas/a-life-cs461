@@ -207,7 +207,7 @@ void Entity::update_biology()
 }
 
 // Just a easy way to get all values I guess
-std::unordered_map<std::string, double> Entity::biology_get_metrics()
+std::unordered_map<std::string, double> Entity::biology_get_metrics(bool display)
 {
     std::unordered_map<std::string, double> metrics;
     
@@ -221,7 +221,7 @@ std::unordered_map<std::string, double> Entity::biology_get_metrics()
     double energy = _biology->get_energy();
     double water = _biology->get_water();
     
-    _biology->print_vals();
+    if(display) _biology->print_vals();
     
     metrics["Health"] = health;
     metrics["Energy"] = energy;

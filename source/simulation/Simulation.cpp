@@ -22,11 +22,11 @@ Simulation::~Simulation() = default;
 void Simulation::initialize()
 {
     // Create a new environment
-    int size = 25;
+    int size = 32;
     _environment = std::make_unique<Environment>(size, size);
     std::cout << "Environment created successfully!" << std::endl;
 
-    PerlinNoise2d _perlin = PerlinNoise2d(1234, 0.01, 1.0, 8);
+    PerlinNoise2d _perlin = PerlinNoise2d(1234, 0.025, 1.0, 8);
     std::cout << "Perlin noise generated!" << std::endl;
     
     // super hackey, will work on actually integrating noise proper into env.
@@ -82,9 +82,11 @@ void Simulation::seed_resources()
                 double energyValue = static_cast<double>(rand()) / static_cast<double>(RAND_MAX); // Random energy value between 0 and 1
                 bool renewable = (rand() % 2) == 0; // Randomly decide if it's renewable
                 _resource_manager->createResource(Position(x, y), type, energyValue, renewable);
+                /*
                 std::cout << "Seeded resource at (" << x << ", " << y << ") with energy " << energyValue 
                           << " and type " << (type == ResourceType::FOOD ? "FOOD" : "WATER") 
                           << (renewable ? " (Renewable)" : " (Non-renewable)") << std::endl;
+                */
             }
         }
     }
@@ -198,6 +200,7 @@ int Simulation::tick(){
     int decision = pass_perception_to_brain();
     interpret_decision(decision);
     get_primary_entity()->update_biology(); // Handle biology updates like energy drain, health regen, etc.
+    get_primary_entity()->biology_get_metrics(true);
     display_environment();
     bool entity_dead = get_primary_entity()->biology_check_death();
     if (entity_dead) {
@@ -357,16 +360,22 @@ void Simulation::display_environment() const
             // Check if an entity is at this location, probably a better way down the line
             if (entity_pos.x == x && entity_pos.y == y)
             {
-                // Display entity as white x
-                std::cout << "\033[97m"  // White color
-                          << "X"
+                double curr_health = get_primary_entity()->biology_get_metrics()["HEALTH"];
+                int r, g, b;
+                r = 255;
+                g = (int)((1 - curr_health) * 255);
+                b = (int)((1 - curr_health) * 255);
+                std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                          << ((char) 219)
+                          << ((char) 219)
                           << "\033[0m"; // Reset color
             }
             else if(!_resource_manager->findResourcesInRange(Position(x, y), 0).empty()) // Check if there's a resource at this location
             {
                 // Display resource as green R
                 std::cout << "\033[92m"  // Green color
-                          << "R"
+                        << ((char) 219)
+                          << ((char) 219)
                           << "\033[0m"; // Reset color
 
             }
@@ -384,20 +393,10 @@ void Simulation::display_environment() const
 
                 bool aesthetic = true;
                 if(aesthetic){
-                    if(normalized < 0.33){
-                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                                << ((char) 176)
-                                << "\033[0m";
-                    } else if (0.33 <= normalized && normalized < 0.66) {
-                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                                << ((char) 177)
-                                << "\033[0m";
-                    } else {
-                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                                << ((char) 178)
-                                << "\033[0m";
-                    }
-
+                    std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                            << ((char) 177)
+                            << ((char) 177)
+                            << "\033[0m";
                 } else {
                     // Alternative print method, prints the value instead of 0
                     char buffer[20];

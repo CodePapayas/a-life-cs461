@@ -196,7 +196,7 @@ public:
      * @brief Gets the metrics of the organism's biology
      * @return A map containing Health, Energy, and Water values
      */
-    std::unordered_map<std::string, double> biology_get_metrics();
+    std::unordered_map<std::string, double> biology_get_metrics(bool display=false);
 
     /**
      * @brief Returns the genetic values of the organism
