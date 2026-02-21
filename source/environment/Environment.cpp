@@ -80,7 +80,7 @@ Tile *Environment::getTile(Vector2d pos){
 
 std::vector<double> Environment::getTileValues(Vector2d pos){
     // input: Vector2 position; Desired X,Y coordinate access in environment
-    // ouput: float value; the value in the tile
+    // ouput: double value; the value in the tile
 
     std::vector<double> result = getTile(pos)->getValues();
     return result;
@@ -92,7 +92,7 @@ void Environment::setTileValues(Vector2d pos, std::vector<double> v){
 
 double Environment::getTileValue(Vector2d pos, int index){
     // input: Vector2 position; Desired X,Y coordinate access in environment
-    // ouput: float value; the value in the tile
+    // ouput: double value; the value in the tile
     return getTile(pos)->getValues()[index];
 };
 

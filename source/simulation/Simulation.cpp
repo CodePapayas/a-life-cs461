@@ -22,7 +22,7 @@ Simulation::~Simulation() = default;
 void Simulation::initialize()
 {
     // Create a new environment
-    int size = 32;
+    int size = 25;
     _environment = std::make_unique<Environment>(size, size);
     std::cout << "Environment created successfully!" << std::endl;
 
@@ -344,29 +344,28 @@ void Simulation::display_environment() const
         return;
     }
 
-    int grid_size = _environment->getTileArea();
     Vector2d entity_pos = get_primary_entity() ? get_primary_entity()->get_coordinates() : Vector2d(-1, -1);
 
     std::cout << "\n=== Environment Display ===\n" << std::endl;
     // Normal 2d traversal of the environment grid
-    for (int y = 0; y < grid_size; ++y)
+    for (int y = 0; y < _environment->getTileAmountY(); ++y)
     {
-        for (int x = 0; x < grid_size; ++x)
+        for (int x = 0; x < _environment->getTileAmountX(); ++x)
         {
-            float tile_value = _environment->getTileValue(Vector2d(x, y), 0);
+            double tile_value = _environment->getTileValue(Vector2d(x, y), 0);
             // Check if an entity is at this location, probably a better way down the line
             if (entity_pos.x == x && entity_pos.y == y)
             {
                 // Display entity as white x
                 std::cout << "\033[97m"  // White color
-                          << "  X "
+                          << "X"
                           << "\033[0m"; // Reset color
             }
             else if(!_resource_manager->findResourcesInRange(Position(x, y), 0).empty()) // Check if there's a resource at this location
             {
                 // Display resource as green R
                 std::cout << "\033[92m"  // Green color
-                          << "  R "
+                          << "R"
                           << "\033[0m"; // Reset color
 
             }
@@ -380,7 +379,9 @@ void Simulation::display_environment() const
                 g = (int)((1 - normalized) * 255);
                 b = (int)((1 - normalized) * 255);
 
-                bool aesthetic = true;
+                //normalized = tile_value;
+
+                bool aesthetic = false;
                 if(aesthetic){
                     if(normalized < 0.33){
                         std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
