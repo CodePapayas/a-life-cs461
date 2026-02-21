@@ -24,6 +24,18 @@ void Simulation::initialize()
     _environment = std::make_unique<Environment>();
     std::cout << "Environment created successfully!" << std::endl;
 
+    PerlinNoise2d _perlin = PerlinNoise2d(0.01, 1.0, 8);
+    std::cout << "Perlin noise generated!" << std::endl;
+    
+    // super hackey, will work on actually integrating noise proper into env.
+    for(int x = 0; x < _environment->getTileAmountX(); x++){
+        for(int y = 0; y < _environment->getTileAmountY(); y++){
+            Vector2d pos = Vector2d(x,y);
+            _environment->setTileValue(pos, _perlin.SampleLayered(pos), 0);
+        }
+    }
+    std::cout << "Environment noise loaded!" << std::endl;
+
     // Create an entity
     auto entity = std::make_unique<Entity>();
     std::cout << "Entity created successfully with ID: " << entity->get_id() << std::endl;
@@ -360,32 +372,38 @@ void Simulation::display_environment() const
             {
                 // Some hacky color coding adopted from another project.
                 int r, g, b;
-                if (tile_value < 0.5)
-                {
-                    // Blue to Cyan (0.0 to 0.5)
-                    float normalized = tile_value * 2; // 0.0 to 1.0
-                    b = 255;
-                    g = (int)(normalized * 255);
-                    r = 0;
-                }
-                else
-                {
-                    // Cyan to Red (0.5 to 1.0 Gets kinda dicey around.5, but it is what it is)
-                    float normalized = (tile_value - 0.5) * 2; // 0.0 to 1.0
-                    r = (int)(normalized * 255);
-                    g = (int)((1 - normalized) * 255);
-                    b = (int)((1 - normalized) * 255);
-                }
-                //std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                //          << "O "
-                //          << "\033[0m";
-                // Alternative print method, prints the value instead of 0
-                char buffer[20];
-                std::sprintf(buffer,"%.1f", tile_value); 
-                std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                          << buffer
-                          << " "
-                          << "\033[0m"; 
+
+                double normalized = (tile_value + 2.0) / 4.0; // 0.0 to 1.0
+                r = (int)(normalized * 255);
+                g = (int)((1 - normalized) * 255);
+                b = (int)((1 - normalized) * 255);
+
+                bool aesthetic = true;
+                if(aesthetic){
+                    if(normalized < 0.33){
+                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                                << ((char) 176)
+                                << "\033[0m";
+                    } else if (0.33 <= normalized && normalized < 0.66) {
+                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                                << ((char) 177)
+                                << "\033[0m";
+                    } else {
+                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                                << ((char) 178)
+                                << "\033[0m";
+                    }
+
+                } else {
+                    // Alternative print method, prints the value instead of 0
+                    char buffer[20];
+                    std::sprintf(buffer,"%.1f", tile_value); 
+                    std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                            << buffer
+                            << " "
+                            << "\033[0m"; 
+                    
+               }
             }
         }
         std::cout << std::endl;
