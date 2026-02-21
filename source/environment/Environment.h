@@ -13,29 +13,32 @@
 #include <unordered_map>
 #include "MathVector.hpp"
 
-const int chunk_amt = 3;
-const int tile_amt = 9;
-
 // placeholder classes for functionality, may be extrapolated into their own files later
 class Vector2d;
 class Tile;
 class Chunk;
 
-
 class Environment
 {
 private:
-    double x_origin = ((double)(chunk_amt * tile_amt)) / 2.0;
-    double y_origin = ((double)(chunk_amt * tile_amt)) / 2.0;
-    std::vector<std::vector<Chunk*>> chunks;    
-    std::unordered_map <int, Vector2d> chunk_map; // get the X,Y for it for simplicity
+    int _size_x;
+    int _size_y;
+    std::vector<std::vector<Tile*>> tiles;    
+    std::unordered_map <int, Vector2d> tile_map; // get the X,Y for it for simplicity
 public:
-    Environment();
-    std::tuple<Vector2d, Vector2d> toChunkCoords(Vector2d pos);
-    float getTileValue(Vector2d pos);
-    int getTilesPerChunk()          {return tile_amt;};
-    int getChunksInEnvironment()    {return chunk_amt;};
-    Vector2d getChunkFromID(int id);
+    Environment(int size_x, int size_y);
+    Vector2d boundCoords(Vector2d pos);
+
+    Tile *getTile(Vector2d pos);
+    std::vector<double> getTileValues(Vector2d pos);
+    void setTileValues(Vector2d pos, std::vector<double> v);
+    double getTileValue(Vector2d pos, int index);
+    void setTileValue(Vector2d pos, double v, int index);
+
+    int getTileAmountX() {return tiles.size();};
+    int getTileAmountY() {return tiles[0].size();};
+    int getTileArea() {return tiles[0].size() * tiles.size();};
+    Vector2d getTileFromID(int id);
 };
 
 #endif
