@@ -30,7 +30,7 @@ std::vector<double> Perception::extract_tile_values_in_radius(
     std::vector<double> tile_values;
     
     // Calculate the total environment size
-    int env_size = environment.getChunksInEnvironment() * environment.getTilesPerChunk();
+    int env_size = environment.getTileArea();    
     
     // Scan a square grid centered on the agent's position
     // Goes from (center_x - radius) to (center_x + radius)
@@ -46,7 +46,7 @@ std::vector<double> Perception::extract_tile_values_in_radius(
                 // Get the tile value from the environment
                 // Using the Vector2d class from Environment.h
                 Vector2d position(tile_x, tile_y);
-                double tile_value = environment.getTileValue(position);
+                double tile_value = environment.getTileValue(position, 0);
                 tile_values.push_back(tile_value);
             } else {
                 // Outside bounds - use a default value (e.g., 0.0)

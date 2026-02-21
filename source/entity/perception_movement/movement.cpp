@@ -147,7 +147,7 @@ std::vector<int> Movement::execute_movement_wraparound(
 
 bool Movement::is_valid_position(int x, int y, Environment& environment) {
     // Calculate environment size
-    int env_size = environment.getChunksInEnvironment() * environment.getTilesPerChunk();
+    int env_size = environment.getTileArea();
 
     // Check bounds
     return (x >= 0 && x < env_size && y >= 0 && y < env_size);

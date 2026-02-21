@@ -22,7 +22,8 @@ Simulation::~Simulation() = default;
 void Simulation::initialize()
 {
     // Create a new environment
-    _environment = std::make_unique<Environment>();
+    int size = 32;
+    _environment = std::make_unique<Environment>(size, size);
     std::cout << "Environment created successfully!" << std::endl;
 
     PerlinNoise2d _perlin = PerlinNoise2d(0.01, 1.0, 8);
@@ -72,8 +73,8 @@ void Simulation::initialize()
 void Simulation::seed_resources()
 {
     // Example of seeding some resources in the environment
-    for (int x =0; x < _environment->getChunksInEnvironment() * _environment->getTilesPerChunk(); x += 1) {
-        for (int y = 0; y < _environment->getChunksInEnvironment() * _environment->getTilesPerChunk(); y += 1) {
+    for (int x =0; x < _environment->getTileAmountX(); x += 1) {
+        for (int y = 0; y < _environment->getTileAmountY(); y += 1) {
             float randomValue = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
             if (randomValue > 0.9){ // 10% chance to create a resource
                 ResourceType type = static_cast<ResourceType>(rand() % 2); // Randomly choose a resource type
@@ -90,7 +91,7 @@ void Simulation::seed_resources()
 
 float Simulation::environGetTileValue(int x, int y) const
 {
-    return _environment->getTileValue(Vector2d(x, y));
+    return _environment->getTileValue(Vector2d(x, y), 0);
 }
 
 Entity* Simulation::get_primary_entity() const
@@ -182,7 +183,7 @@ void Simulation::execute_movement(int direction){
     int prev_x = entity->x;
     int prev_y = entity->y;
     // Fetch the new coordinates and update the entity's position
-    std::vector<int> new_coords = Movement::execute_movement_wraparound(entity->x, entity->y, action, chunk_amt * tile_amt, chunk_amt * tile_amt, entity->biology_get_metrics()["Energy"]);
+    std::vector<int> new_coords = Movement::execute_movement_wraparound(entity->x, entity->y, action, _environment->getTileAmountX(), _environment->getTileAmountY(), entity->biology_get_metrics()["Energy"]);
     entity->set_coordinates(Vector2d(new_coords[0], new_coords[1]));
     std::cout << "Entity moved from (" << prev_x << ", " << prev_y << ") to (" << entity->x << ", " << entity->y << ")" << std::endl;
     // Need to drain energy based on the terrain type of the new tile and the entity's biology
@@ -343,7 +344,7 @@ void Simulation::display_environment() const
         return;
     }
 
-    int grid_size = chunk_amt * tile_amt;
+    int grid_size = _environment->getTileArea();
     Vector2d entity_pos = get_primary_entity() ? get_primary_entity()->get_coordinates() : Vector2d(-1, -1);
 
     std::cout << "\n=== Environment Display ===\n" << std::endl;
@@ -352,7 +353,7 @@ void Simulation::display_environment() const
     {
         for (int x = 0; x < grid_size; ++x)
         {
-            float tile_value = _environment->getTileValue(Vector2d(x, y));
+            float tile_value = _environment->getTileValue(Vector2d(x, y), 0);
             // Check if an entity is at this location, probably a better way down the line
             if (entity_pos.x == x && entity_pos.y == y)
             {
