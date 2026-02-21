@@ -1,5 +1,6 @@
 #include "Simulation.hpp"
 #include "../environment/Environment.h"
+#include "../environment/PerlinNoise.hpp"
 #include "../../entity/decision_center/entity.hpp"
 #include "../../entity/decision_center/brain.hpp"
 #include "../../entity/decision_center/biology.hpp"
