@@ -360,11 +360,11 @@ void Simulation::display_environment() const
             // Check if an entity is at this location, probably a better way down the line
             if (entity_pos.x == x && entity_pos.y == y)
             {
-                double curr_health = get_primary_entity()->biology_get_metrics()["HEALTH"];
+                double curr_health = get_primary_entity()->biology_get_metrics()["Health"];
                 int r, g, b;
                 r = 255;
-                g = (int)((1 - curr_health) * 255);
-                b = (int)((1 - curr_health) * 255);
+                g = (int)((curr_health) * 255);
+                b = (int)((curr_health) * 255);
                 std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
                           << ((char) 219)
                           << ((char) 219)
