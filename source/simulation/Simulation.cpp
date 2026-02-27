@@ -112,7 +112,7 @@ std::vector<double> Simulation::get_perception() const
         get_primary_entity()->get_coordinates().x,
         get_primary_entity()->get_coordinates().y,
         *_environment,
-        2 //(4 * get_primary_entity()->biology_get_genetic_value("Vision")) // Default perception radius
+        std::max(2, static_cast<int>(4 * get_primary_entity()->biology_get_genetic_value("Vision")))
     );
     return val.tile_values;
 }
