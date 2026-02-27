@@ -40,6 +40,25 @@ Run persistence tests:
 ./test_auto_save
 ```
 
+## CLI & Autosave
+
+Build and run the simulation from the project root:
+```
+mkdir -p build && cd build
+cmake ..
+make -j4
+./main --ticks 100 --autosave 25
+```
+
+Options:
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--ticks N` | 10 | Number of simulation ticks |
+| `--autosave K` | 0 (off) | Save state history every K ticks |
+| `--buffer-size N` | 1000 | Circular buffer capacity |
+| `--save-dir DIR` | `saves/` | Output directory for autosave files |
+| `--help` | | Show usage |
+
 ## Project structure
 
 ```

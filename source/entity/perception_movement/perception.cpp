@@ -48,40 +48,42 @@ std::vector<double> Perception::extract_tile_values_in_radius(
                 Vector2d position(tile_x, tile_y);
                 double tile_value = environment.getTileValue(position, 0);
                 tile_values.push_back(tile_value);
-            } else {
-                // Outside bounds - use a default value (e.g., 0.0)
-                tile_values.push_back(0.0);
-            }
+            } 
+            // The perception wraps around now, thus bounds no longer exist.
+            // else {
+            //     // Outside bounds - use a default value (e.g., 0.0)
+            //     tile_values.push_back(0.0);
+            // }
         }
     }
     
     return tile_values;
 }
 
-// Legacy function for backward compatibility
-Perception::SensoryInput Perception::perceive_local_environment(
-    int entity_x,
-    int entity_y,
-    const std::vector<std::vector<double>>& difficulty_map) {
+// // Legacy function for backward compatibility
+// Perception::SensoryInput Perception::perceive_local_environment(
+//     int entity_x,
+//     int entity_y,
+//     const std::vector<std::vector<double>>& difficulty_map) {
 
-    SensoryInput sensory;
-    sensory.entity_x = entity_x;
-    sensory.entity_y = entity_y;
+//     SensoryInput sensory;
+//     sensory.entity_x = entity_x;
+//     sensory.entity_y = entity_y;
 
-    // Simple placeholder implementation for backward compatibility
-    // Convert difficulty map format to tile values
-    std::vector<double> features;
+//     // Simple placeholder implementation for backward compatibility
+//     // Convert difficulty map format to tile values
+//     std::vector<double> features;
     
-    if (!difficulty_map.empty() && entity_y < difficulty_map.size() && 
-        entity_x < difficulty_map[entity_y].size()) {
-        features.push_back(static_cast<double>(difficulty_map[entity_y][entity_x]));
-    } else {
-        features.push_back(0.5);
-    }
+//     if (!difficulty_map.empty() && entity_y < difficulty_map.size() && 
+//         entity_x < difficulty_map[entity_y].size()) {
+//         features.push_back(static_cast<double>(difficulty_map[entity_y][entity_x]));
+//     } else {
+//         features.push_back(0.5);
+//     }
     
-    sensory.tile_values = features;
-    sensory.perception_radius = 0;
-    sensory.grid_size = 1;
+//     sensory.tile_values = features;
+//     sensory.perception_radius = 0;
+//     sensory.grid_size = 1;
 
-    return sensory;
-}
+//     return sensory;
+// }
