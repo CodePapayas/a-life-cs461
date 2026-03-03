@@ -36,6 +36,16 @@ void Biology::set_random_attributes()
     }
 }
 
+
+void Biology::set_genetic_vals(const std::unordered_map<std::string, double>& vals)
+{
+    /*
+    Sets up the biology with passed in values for genome
+    */
+    _genetic_values = vals;
+}
+
+
 // ==================== Getters ====================
 
 double Biology::get_health() const

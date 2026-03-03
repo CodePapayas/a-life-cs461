@@ -59,6 +59,11 @@ ActivationLayerReLU::ActivationLayerReLU(int input_size, int output_size) {
     }
 }
 
+//overwrite a RELU from passed in weights and biases
+void ActivationLayerReLU::ActivationLayerReLUOffsping(const std::vector<double>& weights, const std::vector<double>& biases) {
+    this->weights = weights;
+    this->biases = biases;
+}
 // Forward Pass
 // computes weighted sum plus bias, then applies ReLU activation to each output neuron.
 std::vector<double> ActivationLayerReLU::forward(const std::vector<double>& input) {
@@ -114,3 +119,7 @@ int Brain::decide(const std::vector<double>& input) {
     int max_index = std::max_element(current_output.begin(), current_output.end()) - current_output.begin();
     return max_index;
 }
+
+std::vector<ActivationLayerReLU>& Brain::get_layers() {
+    return layers;
+}   

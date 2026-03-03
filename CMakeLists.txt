@@ -9,6 +9,7 @@ set(DECISION_CENTER_SOURCES
     source/entity/decision_center/brain.cpp
     source/entity/decision_center/entity.cpp
     source/entity/decision_center/biology.cpp
+    source/entity/decision_center/mutate.cpp
 )
 
 # Perception and Movement sources

@@ -7,6 +7,7 @@
 #include "../entity/perception_movement/perception.hpp"
 #include "../entity/perception_movement/movement.hpp"
 #include "../environment/resource_node.h"
+#include "../entity/decision_center/mutate.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -96,6 +97,43 @@ float Simulation::environGetTileValue(int x, int y) const
 {
     return _environment->getTileValue(Vector2d(x, y), 0);
 }
+
+
+Entity* Simulation::reproduce(Entity* p1, Entity* p2)
+{
+    Entity* brainParent = (rand() % 2 == 0) ? p1 : p2; // pick one parent for brain
+    std::unordered_map<std::string, double> p1_genetics = p1->biology_get_genetics();
+    std::unordered_map<std::string, double> p2_genetics = p2->biology_get_genetics();
+    std::unordered_map<std::string, double> child_genetics;
+    // make a choice between each parent for each value in the genetics and then mutate it before passing to the child
+    for (const auto& pair : p1_genetics)
+    {
+        const std::string& gene = pair.first;
+        double val1 = pair.second;
+        double val2 = p2_genetics[gene];
+        double chosen_val = (rand() % 2 == 0) ? val1 : val2; // Randomly choose one parent's value
+        child_genetics[gene] = chosen_val;
+    }
+    // Mutate the child's genetics
+    child_genetics = mutate_genetics(child_genetics);
+    Brain* newBrain = new Brain(*brainParent->get_brain()); // Copy the brain of the chosen parent, will be mutated in the future
+    // Create a new entity with the child's genetics
+    Entity* child = new Entity();
+    child->set_biology(std::make_shared<Biology>(false)); // false for random genetics, will be overwritten by set_genetic_vals
+    child->get_biology()->set_genetic_vals(child_genetics);
+    // Copy the parents brain, mutate hthe weights and biases, and set it to the child,
+    child->set_brain(std::make_shared<Brain>(*brainParent->get_brain()));   
+    std::vector<ActivationLayerReLU>& parent_layers = brainParent->get_brain()->get_layers();
+    for (auto& layer : parent_layers) {
+        std::vector<double> mutated_weights = mutate_vector(layer.get_weights());
+        std::vector<double> mutated_biases = mutate_vector(layer.get_biases());
+        child->get_brain()->get_layers()[&layer - &parent_layers[0]].ActivationLayerReLUOffsping(mutated_weights, mutated_biases);
+    }
+    // child-get_brain()->set_layers(mutated_layers);
+    _entities.push_back(std::unique_ptr<Entity>(child));
+    return child;
+}
+
 
 Entity* Simulation::get_primary_entity() const
 {

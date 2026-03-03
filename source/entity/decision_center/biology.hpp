@@ -43,7 +43,7 @@ public:
      * @brief Sets genetic values to random values between 0 and 1
      */
     void set_random_attributes();
-
+    void set_genetic_vals(const std::unordered_map<std::string, double>& vals);
     // ==================== Getters ====================
 
 

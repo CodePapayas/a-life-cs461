@@ -60,6 +60,8 @@ public:
      */
     int pass_perception_to_brain();
 
+    Entity* reproduce(Entity* parent1, Entity* parent2);
+    
     /**
      * @brief Returns the first entity (primary entity). Initial sims will only have 1, but I want to have this in place for when we expand.
      * @return Pointer to the first entity

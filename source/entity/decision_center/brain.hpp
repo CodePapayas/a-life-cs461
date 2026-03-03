@@ -17,6 +17,7 @@ private:
 
 public:
     ActivationLayerReLU(int input_size, int output_size);
+    void ActivationLayerReLUOffsping(const std::vector<double>& weights, const std::vector<double>& biases);
     std::vector<double> forward(const std::vector<double>& input);
     int get_weight_count() const { return weights.size(); }
     int get_biases_count() const { return biases.size(); }
@@ -35,4 +36,6 @@ public:
     Brain(std::vector<int> layer_sizes);
     int decide(const std::vector<double>& input);
     int get_layer_count() const { return layers.size(); }
+    std::vector<ActivationLayerReLU>& get_layers();
+    void set_layers(const std::vector<ActivationLayerReLU>& new_layers) { layers = new_layers; }
 };
