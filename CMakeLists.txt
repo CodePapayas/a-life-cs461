@@ -11,13 +11,11 @@ set(DECISION_CENTER_SOURCES
     source/entity/decision_center/biology.cpp
 )
 
-# Perception and Movement sources
 set(PERCEPTION_MOVEMENT_SOURCES
     source/entity/perception_movement/perception.cpp
     source/entity/perception_movement/movement.cpp
 )
 
-# Main sources
 set(MAIN_SOURCES
     main.cpp
     source/simulation/Simulation.cpp
@@ -31,14 +29,9 @@ add_executable(main
     ${DECISION_CENTER_SOURCES}
 )
 
-# Include directories
 include_directories(
-    ${PROJECT_SOURCE_DIR}/source/entity/decision_center
+    ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/source/entity/decision_center
     ${PROJECT_SOURCE_DIR}/source/entity/perception_movement
 )
-
-# Link decision_center static library
-if(TARGET decision_center)
-    target_link_libraries(main_exe PRIVATE decision_center)
-endif()

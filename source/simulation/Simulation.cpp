@@ -357,16 +357,30 @@ void Simulation::display_environment() const
             // Check if an entity is at this location, probably a better way down the line
             if (entity_pos.x == x && entity_pos.y == y)
             {
+<<<<<<< Updated upstream
                 // Display entity as white x
                 std::cout << "\033[97m"  // White color
                           << "X"
+=======
+                double curr_health = get_primary_entity()->biology_get_metrics()["Health"];
+                int r, g, b;
+                r = 255;
+                g = (int)((curr_health) * 255);
+                b = (int)((curr_health) * 255);
+                std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                          << "\u2588\u2588"
+>>>>>>> Stashed changes
                           << "\033[0m"; // Reset color
             }
             else if(!_resource_manager->findResourcesInRange(Position(x, y), 0).empty()) // Check if there's a resource at this location
             {
                 // Display resource as green R
                 std::cout << "\033[92m"  // Green color
+<<<<<<< Updated upstream
                           << "R"
+=======
+                          << "\u2588\u2588"
+>>>>>>> Stashed changes
                           << "\033[0m"; // Reset color
 
             }
@@ -384,6 +398,7 @@ void Simulation::display_environment() const
 
                 bool aesthetic = true;
                 if(aesthetic){
+<<<<<<< Updated upstream
                     if(normalized < 0.33){
                         std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
                                 << ((char) 176)
@@ -398,6 +413,11 @@ void Simulation::display_environment() const
                                 << "\033[0m";
                     }
 
+=======
+                    std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
+                            << "\u2592\u2592"
+                            << "\033[0m";
+>>>>>>> Stashed changes
                 } else {
                     // Alternative print method, prints the value instead of 0
                     char buffer[20];
