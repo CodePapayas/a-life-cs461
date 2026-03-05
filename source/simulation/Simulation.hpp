@@ -55,6 +55,14 @@ public:
     std::vector<double> get_perception() const;
 
     /**
+     * @brief Modifies the amount of objects perceived by the agent based on their genetics
+     * @return The modified vision value
+     */
+    std::vector<double> fuzzy_vision(const std::vector<double>& perception, float vision);
+
+    double get_distance_from_index(int index);
+
+    /**
      * @brief Sends perception plus internal state to the entity brain and returns a decision code
      * @return The decision code, or -1 on error
      */
@@ -110,6 +118,6 @@ public:
      */
     float get_vision_value() const;
 
-    std::vector<double> filter_perception(std::vector<double> perception, int tilesToIgnore) const;
+    // std::vector<double> filter_perception(std::vector<double> perception, int tilesToIgnore) const;
 
 };

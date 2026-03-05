@@ -106,13 +106,53 @@ Entity* Simulation::get_primary_entity() const
 
 std::vector<double> Simulation::get_perception() const
 {
-    Perception::SensoryInput val = _perception->perceive_local_tiles(
-        get_primary_entity()->get_coordinates().x,
-        get_primary_entity()->get_coordinates().y,
-        *_environment,
-        2 //(4 * get_primary_entity()->biology_get_genetic_value("Vision")) // Default perception radius
-    );
-    return val.tile_values;
+    // Perceive everything there is to perceive
+    const int MAX_RADIUS = 2; 
+
+        Perception::SensoryInput val = _perception->perceive_local_tiles(
+            get_primary_entity()->get_coordinates().x,
+            get_primary_entity()->get_coordinates().y,
+            *_environment,
+            MAX_RADIUS 
+        );
+        return val.tile_values;
+}
+
+// Helper function for fuzzy vision
+double Simulation::get_distance_from_index(int index)
+{
+    const int grid_size = 5; // (MAX_RADIUS * 2) + 1
+    const int center = 2;    // The middle index coordinate
+
+    int x = index % grid_size;
+    int y = index / grid_size;
+
+    int dx = x - center;
+    int dy = y - center;
+
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+std::vector<double> Simulation::fuzzy_vision(const std::vector<double>& perception, float vision) 
+{
+    std::vector<double> filtered;
+    filtered.reserve(perception.size());
+
+    const double neutral_point = 0.5;
+    float fuzzed_vision = std::max(vision, 0.05f);
+
+    for (size_t i = 0; i < perception.size(); ++i)
+    {
+        double raw_perception = perception[i];
+        double distance = get_distance_from_index(i);
+        double clarity = std::exp(-distance / (fuzzed_vision * 2.0));  // 2.0 can be adjusted to other values
+        double filtered_val = neutral_point + (raw_perception - neutral_point) * clarity;
+
+        filtered.push_back(filtered_val);
+
+    }
+
+    return filtered;
 }
 
 int Simulation::pass_perception_to_brain()
@@ -121,24 +161,28 @@ int Simulation::pass_perception_to_brain()
     if (!entity)
     {
         std::cerr << "No primary entity found for perception to brain!" << std::endl;
-        return -1; // Indicate an error
+        return -1; 
     }
-    // Get the value of all tiles
+
+    // 1. Get the raw tile values (ensure get_perception() returns a static size, e.g., 25)
     std::vector<double> perception = get_perception();
-
-    // Get the strength of the entities vision and determine how many tiles to ignore
-    float vision_value = entity->biology_get_genetic_value("Vision");
-    int tilesToIgnore = std::max(static_cast<int>(25.0 - (25 * vision_value)), 1); // at max vision (1.0), ignore 0 tiles, at min vision (0.0) ignore 24 tiles (only sees own tile) 
     
-    // Get the filtered values based on the vision strength and add intetnal metrics
-    std::vector<double> filteredPerception = filter_perception(perception, tilesToIgnore); // Start with just the tile values
-    filteredPerception.push_back(entity->biology_get_metrics()["Energy"]);
-    filteredPerception.push_back(entity->biology_get_metrics()["Health"]);
-    filteredPerception.push_back(entity->biology_get_metrics()["Water"]);
+    // 2. Get the genetic vision value
+    float vision_value = entity->biology_get_genetic_value("Vision");
 
-    // Get the decision from the brain
-    int decision = entity->brain_get_decision(filteredPerception);
-    return decision;
+    // 3. Apply the fuzzy vision filter to all tiles
+    // This moves values toward 0.5 based on distance and vision strength
+    std::vector<double> filteredPerception = fuzzy_vision(perception, vision_value);
+
+    // 4. Append internal metrics (Energy, Health, Water)
+    // These remain at full clarity/precision
+    const auto& metrics = entity->biology_get_metrics();
+    filteredPerception.push_back(metrics.at("Energy"));
+    filteredPerception.push_back(metrics.at("Health"));
+    filteredPerception.push_back(metrics.at("Water"));
+
+    // 5. Get the decision from the brain using the fuzzy inputs
+    return entity->brain_get_decision(filteredPerception);
 }
 
 void Simulation::interpret_decision(int decision_code)
@@ -178,8 +222,20 @@ void Simulation::execute_movement(int direction){
     // Placeholder for movement execution logic based on the direction decided by the brain
     // This would involve updating the entity's coordinates and applying any relevant energy costs or terrain effects
 
+    // Map DecisionCodes to Movement::Direction explicitly
+    Movement::Direction move_dir;
+    switch (static_cast<DecisionCodes>(direction))
+    {
+        case DecisionCodes::MOVE_UP:    move_dir = Movement::Direction::NORTH; break;
+        case DecisionCodes::MOVE_DOWN:  move_dir = Movement::Direction::SOUTH; break;
+        case DecisionCodes::MOVE_LEFT:  move_dir = Movement::Direction::WEST;  break;
+        case DecisionCodes::MOVE_RIGHT: move_dir = Movement::Direction::EAST;  break;
+        case DecisionCodes::STAY_STILL: move_dir = Movement::Direction::STAY;  break;
+        default:                        move_dir = Movement::Direction::STAY;  break;
+    }
+
     // First create a movement struct
-    Movement::Action action = Movement::direction_to_action(static_cast<Movement::Direction>(direction), 0); // For now, keeping base energy at 0
+    Movement::Action action = Movement::direction_to_action(move_dir, 0); // For now, keeping base energy at 0
     auto entity = get_primary_entity();
     int prev_x = entity->x;
     int prev_y = entity->y;
@@ -213,102 +269,102 @@ size_t Simulation::get_entity_count() const
     return _entities.size();
 }
 
-std::vector<double> Simulation::filter_perception(std::vector<double> perception, int tilesToIgnore) const
-{
-    if (perception.empty() || tilesToIgnore <= 0)
-    {
-        return perception;
-    }
+// std::vector<double> Simulation::filter_perception(std::vector<double> perception, int tilesToIgnore) const
+// {
+//     if (perception.empty() || tilesToIgnore <= 0)
+//     {
+//         return perception;
+//     }
 
-    int tile_count = static_cast<int>(perception.size());
-    int tail_count = 0;
-    int grid_size = static_cast<int>(std::sqrt(tile_count));
+//     int tile_count = static_cast<int>(perception.size());
+//     int tail_count = 0;
+//     int grid_size = static_cast<int>(std::sqrt(tile_count));
 
-    if (tile_count >= 3)
-    {
-        tail_count = 3;
-        tile_count -= 3;
-    }
+//     if (tile_count >= 3)
+//     {
+//         tail_count = 3;
+//         tile_count -= 3;
+//     }
     
-    if (grid_size % 2 == 0)
-    {
-        return perception;
-    }
+//     if (grid_size % 2 == 0)
+//     {
+//         return perception;
+//     }
 
-    int radius = grid_size / 2;
-    int ignore_count = std::min(tilesToIgnore, tile_count > 0 ? tile_count - 1 : 0);
-    std::vector<bool> ignore(tile_count, false);
-    int ignored = 0;
+//     int radius = grid_size / 2;
+//     int ignore_count = std::min(tilesToIgnore, tile_count > 0 ? tile_count - 1 : 0);
+//     std::vector<bool> ignore(tile_count, false);
+//     int ignored = 0;
 
-    auto mark_tile = [&](int rx, int ry) {
-        if (ignored >= ignore_count)
-        {
-            return;
-        }
-        int x = rx + radius;
-        int y = ry + radius;
-        if (x < 0 || y < 0 || x >= grid_size || y >= grid_size)
-        {
-            return;
-        }
-        int idx = x * grid_size + (grid_size - 1 - y);
-        if (idx < tile_count && !ignore[idx])
-        {
-            ignore[idx] = true;
-            ++ignored;
-        }
-    };
+//     auto mark_tile = [&](int rx, int ry) {
+//         if (ignored >= ignore_count)
+//         {
+//             return;
+//         }
+//         int x = rx + radius;
+//         int y = ry + radius;
+//         if (x < 0 || y < 0 || x >= grid_size || y >= grid_size)
+//         {
+//             return;
+//         }
+//         int idx = x * grid_size + (grid_size - 1 - y);
+//         if (idx < tile_count && !ignore[idx])
+//         {
+//             ignore[idx] = true;
+//             ++ignored;
+//         }
+//     };
 
-    for (int r = radius; r >= 1 && ignored < ignore_count; --r)
-    {
-        // Bottom edge: (0,-r), (-1,-r), (1,-r), ..., (-r,-r), (r,-r)
-        mark_tile(0, -r);
-        for (int i = 1; i <= r && ignored < ignore_count; ++i)
-        {
-            mark_tile(-i, -r);
-            mark_tile(i, -r);
-        }
+//     for (int r = radius; r >= 1 && ignored < ignore_count; --r)
+//     {
+//         // Bottom edge: (0,-r), (-1,-r), (1,-r), ..., (-r,-r), (r,-r)
+//         mark_tile(0, -r);
+//         for (int i = 1; i <= r && ignored < ignore_count; ++i)
+//         {
+//             mark_tile(-i, -r);
+//             mark_tile(i, -r);
+//         }
 
-        // Vertical edges: (-r, y), (r, y) for y = -r+1..r-1
-        for (int y = -r + 1; y <= r - 1 && ignored < ignore_count; ++y)
-        {
-            mark_tile(-r, y);
-            mark_tile(r, y);
-        }
+//         // Vertical edges: (-r, y), (r, y) for y = -r+1..r-1
+//         for (int y = -r + 1; y <= r - 1 && ignored < ignore_count; ++y)
+//         {
+//             mark_tile(-r, y);
+//             mark_tile(r, y);
+//         }
 
-        // Top edge: (-r,r), (r,r), (-(r-1),r), ((r-1),r), ..., (-1,r), (1,r), (0,r)
-        mark_tile(-r, r);
-        mark_tile(r, r);
-        for (int i = r - 1; i >= 1 && ignored < ignore_count; --i)
-        {
-            mark_tile(-i, r);
-            mark_tile(i, r);
-        }
-        mark_tile(0, r);
-    }
+//         // Top edge: (-r,r), (r,r), (-(r-1),r), ((r-1),r), ..., (-1,r), (1,r), (0,r)
+//         mark_tile(-r, r);
+//         mark_tile(r, r);
+//         for (int i = r - 1; i >= 1 && ignored < ignore_count; --i)
+//         {
+//             mark_tile(-i, r);
+//             mark_tile(i, r);
+//         }
+//         mark_tile(0, r);
+//     }
 
-    if (ignored < ignore_count)
-    {
-        mark_tile(0, 0);
-    }
+//     if (ignored < ignore_count)
+//     {
+//         mark_tile(0, 0);
+//     }
 
-    std::vector<double> filtered;
-    filtered.reserve((tile_count - ignored + tail_count));
-    for (int i = 0; i < tile_count; ++i)
-    {
-        if (!ignore[i])
-        {
-            filtered.push_back(perception[i]);
-        }
-    }
+//     std::vector<double> filtered;
+//     filtered.reserve((tile_count - ignored + tail_count));
+//     for (int i = 0; i < tile_count; ++i)
+//     {
+//         if (!ignore[i])
+//         {
+//             filtered.push_back(perception[i]);
+//         }
+//     }
 
-    if (tail_count > 0)
-    {
-        filtered.insert(filtered.end(), perception.end() - tail_count, perception.end());
-    }
+//     if (tail_count > 0)
+//     {
+//         filtered.insert(filtered.end(), perception.end() - tail_count, perception.end());
+//     }
 
-    return filtered;
-}
+//     return filtered;
+// }
 
 void Simulation::biologySetCoordinates(Vector2d coords)
 {
@@ -357,11 +413,6 @@ void Simulation::display_environment() const
             // Check if an entity is at this location, probably a better way down the line
             if (entity_pos.x == x && entity_pos.y == y)
             {
-<<<<<<< Updated upstream
-                // Display entity as white x
-                std::cout << "\033[97m"  // White color
-                          << "X"
-=======
                 double curr_health = get_primary_entity()->biology_get_metrics()["Health"];
                 int r, g, b;
                 r = 255;
@@ -369,18 +420,13 @@ void Simulation::display_environment() const
                 b = (int)((curr_health) * 255);
                 std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
                           << "\u2588\u2588"
->>>>>>> Stashed changes
                           << "\033[0m"; // Reset color
             }
             else if(!_resource_manager->findResourcesInRange(Position(x, y), 0).empty()) // Check if there's a resource at this location
             {
                 // Display resource as green R
                 std::cout << "\033[92m"  // Green color
-<<<<<<< Updated upstream
-                          << "R"
-=======
                           << "\u2588\u2588"
->>>>>>> Stashed changes
                           << "\033[0m"; // Reset color
 
             }
@@ -398,26 +444,9 @@ void Simulation::display_environment() const
 
                 bool aesthetic = true;
                 if(aesthetic){
-<<<<<<< Updated upstream
-                    if(normalized < 0.33){
-                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                                << ((char) 176)
-                                << "\033[0m";
-                    } else if (0.33 <= normalized && normalized < 0.66) {
-                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                                << ((char) 177)
-                                << "\033[0m";
-                    } else {
-                        std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                                << ((char) 178)
-                                << "\033[0m";
-                    }
-
-=======
                     std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
                             << "\u2592\u2592"
                             << "\033[0m";
->>>>>>> Stashed changes
                 } else {
                     // Alternative print method, prints the value instead of 0
                     char buffer[20];

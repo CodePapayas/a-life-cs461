@@ -25,7 +25,7 @@ inline std::unordered_map<std::string, double> GetDefaultGeneticValues()
         {"Energy Efficiency", 0.5},
         {"Water Efficiency", 0.8},
         {"Mass", 0.5},
-        {"Vision", 0.4},
+        {"Vision", 0.8},
         {"Chem 1", 0.9},
         {"Chem 2", 0.1},
         {"Chem 3", 0.3},

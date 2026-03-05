@@ -35,3 +35,16 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/source/entity/decision_center
     ${PROJECT_SOURCE_DIR}/source/entity/perception_movement
 )
+
+set(SIMULATION_SOURCES
+    source/simulation/Simulation.cpp
+    source/environment/Environment.cpp
+    source/environment/resource_node.cpp
+)
+
+add_executable(test_fuzzy_vision
+    test/test_fuzzy_vision.cpp
+    ${SIMULATION_SOURCES}
+    ${PERCEPTION_MOVEMENT_SOURCES}
+    ${DECISION_CENTER_SOURCES}
+)

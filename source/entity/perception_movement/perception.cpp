@@ -1,4 +1,5 @@
 #include "perception.hpp"
+#include "../decision_center/entity.hpp"
 #include "../../environment/Environment.h"
 
 Perception::SensoryInput Perception::perceive_local_tiles(
