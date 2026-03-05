@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Add subdirectories for modules
 add_subdirectory(decision_center)
+add_subdirectory(persistence)
 
 # Perception and Movement sources
 set(PERCEPTION_MOVEMENT_SOURCES
@@ -14,12 +15,11 @@ set(PERCEPTION_MOVEMENT_SOURCES
     perception_movement/movement.cpp
 )
 
-# Main sources
+# Main sources — resource_node.cpp is provided by alife_persistence
 set(MAIN_SOURCES
     main.cpp
     source/Simulation.cpp
     source/Environment.cpp
-    source/resource_node.cpp
 )
 
 add_executable(main_exe
@@ -32,9 +32,14 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/decision_center
     ${PROJECT_SOURCE_DIR}/perception_movement
     ${PROJECT_SOURCE_DIR}/source
+    ${PROJECT_SOURCE_DIR}/include
 )
 
-# Link decision_center static library
+# Link decision_center and persistence libraries
 if(TARGET decision_center)
     target_link_libraries(main_exe PRIVATE decision_center)
+endif()
+
+if(TARGET alife_persistence)
+    target_link_libraries(main_exe PRIVATE alife_persistence)
 endif()
