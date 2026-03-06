@@ -40,6 +40,29 @@ Run persistence tests:
 ./test_auto_save
 ```
 
+## Running the simulation with live stats
+
+Always run from the project root so `db/schema.sql` resolves correctly.
+
+**Terminal 1 — run the simulation:**
+```
+./build_main/main_exe
+```
+
+**Terminal 2 — run the live visualizer** (polls the DB and redraws every 2 seconds by default):
+```
+./build_main/data_visualization/live_visualizer_tool
+```
+
+Optional arguments (no brackets):
+```
+./build_main/data_visualization/live_visualizer_tool <poll_interval_seconds> <history_limit>
+# e.g. poll every 2 seconds, show last 60 ticks:
+./build_main/data_visualization/live_visualizer_tool 2 60
+```
+
+Both executables use the same database env vars (`ALIFE_DB_HOST`, `ALIFE_DB_PORT`, `ALIFE_DB_NAME`, `ALIFE_DB_USER`) — make sure they are set in both terminals.
+
 ## Project structure
 
 ```

@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Add subdirectories for modules
 add_subdirectory(decision_center)
 add_subdirectory(persistence)
+add_subdirectory(data_visualization)
 
 # Perception and Movement sources
 set(PERCEPTION_MOVEMENT_SOURCES
