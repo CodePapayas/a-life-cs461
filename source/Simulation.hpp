@@ -2,9 +2,18 @@
 
 #include <memory>
 #include <vector>
+#include <cstdint>
 #include "Environment.h"
 #include "../decision_center/entity.hpp"
 #include "../perception_movement/perception.hpp"
+
+// Forward-declare persistence types so this header stays free of libpq
+// and other heavy includes — only Simulation.cpp needs the full definitions.
+class AutoSave;
+struct AutoSaveStats;
+struct SimulationSavePayload;
+struct SimulationState;
+template<typename T> class CircularBuffer;
 
 // Forward declarations
 class Brain;
@@ -22,6 +31,13 @@ private:
     std::vector<std::unique_ptr<Entity>> _entities;
     std::unique_ptr<Perception> _perception;
     std::unique_ptr<ResourceManager> _resource_manager;
+
+    uint64_t m_tick = 0;
+    std::unique_ptr<CircularBuffer<SimulationState>> m_stateHistory;
+    std::shared_ptr<AutoSave>                        m_autoSave;
+
+    // Gathers current entity and resource state into a payload for the save system.
+    SimulationSavePayload buildSavePayload();
 
 public:
     /**
@@ -112,4 +128,16 @@ public:
 
     std::vector<double> filter_perception(std::vector<double> perception, int tilesToIgnore) const;
 
+    // ==================== Auto-Save ====================
+
+    // Attach a fully-constructed AutoSave; the simulation will drive it from tick().
+    // Pass nullptr to detach. Does not throw — a missing AutoSave is silently skipped.
+    void enableAutoSave(std::shared_ptr<AutoSave> autoSave);
+
+    void disableAutoSave();
+
+    // Returns nullptr when no AutoSave is attached.
+    const AutoSaveStats* autoSaveStats() const;
+
+    uint64_t currentTick() const { return m_tick; }
 };

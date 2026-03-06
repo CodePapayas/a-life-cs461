@@ -6,13 +6,23 @@
 #include "../perception_movement/perception.hpp"
 #include "../perception_movement/movement.hpp"
 #include "resource_node.h"
+
+#include "../include/auto_save.h"
+#include "../include/circular_buffer.h"
+#include "../include/simulation_state.h"
+
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 #include <iostream>
 #include <format>
 
+static constexpr size_t STATE_HISTORY_CAPACITY = 500;
+
 Simulation::Simulation()
     : _environment(nullptr)
+    , m_tick(0)
+    , m_stateHistory(std::make_unique<CircularBuffer<SimulationState>>(STATE_HISTORY_CAPACITY))
 {
 }
 
@@ -178,6 +188,8 @@ void Simulation::execute_movement(int direction){
 }   
 
 int Simulation::tick(){
+    ++m_tick;
+
     // Get the perception for the primary entity and pass it to the brain to get a decision
     std::vector<double> perception = get_perception();
     int decision = pass_perception_to_brain();
@@ -190,6 +202,29 @@ int Simulation::tick(){
         // In a more complex simulation, we might want to remove the entity and continue
         return -1;
     }
+
+    // Snapshot this tick for the rolling state history used by auto-save and rewind.
+    SimulationState state;
+    state.tick              = m_tick;
+    state.timestamp         = static_cast<double>(std::time(nullptr));
+    state.agentCount        = static_cast<uint32_t>(_entities.size());
+    state.totalResources    = static_cast<uint32_t>(_resource_manager->getResourceCount());
+
+    double totalEnergy = 0.0;
+    for (const auto& ent : _entities) {
+        auto metrics = ent->biology_get_metrics();
+        if (metrics.count("Energy"))
+            totalEnergy += metrics.at("Energy");
+    }
+    state.totalEnergy        = totalEnergy;
+    state.averageAgentEnergy = _entities.empty() ? 0.0 : totalEnergy / _entities.size();
+    m_stateHistory->push(state);
+
+    // Let the auto-save system decide whether this tick warrants a save.
+    if (m_autoSave) {
+        m_autoSave->tick(m_tick, [this]() { return buildSavePayload(); });
+    }
+
     return 0; // Return 0 to indicate the tick completed successfully
 }
 
@@ -197,6 +232,55 @@ size_t Simulation::get_entity_count() const
 {
     return _entities.size();
 }
+
+void Simulation::enableAutoSave(std::shared_ptr<AutoSave> autoSave)
+{
+    m_autoSave = std::move(autoSave);
+}
+
+void Simulation::disableAutoSave()
+{
+    m_autoSave.reset();
+}
+
+const AutoSaveStats* Simulation::autoSaveStats() const
+{
+    if (!m_autoSave) return nullptr;
+    return &m_autoSave->stats();
+}
+
+SimulationSavePayload Simulation::buildSavePayload()
+{
+    SimulationSavePayload payload;
+    payload.tick           = m_tick;
+    payload.realTimestamp  = static_cast<double>(std::time(nullptr));
+    payload.worldWidth     = _environment->getChunksInEnvironment()
+                           * _environment->getTilesPerChunk();
+    payload.worldHeight    = payload.worldWidth;
+    payload.stateHistory   = m_stateHistory.get();
+
+    double totalEnergy = 0.0;
+    for (const auto& ent : _entities) {
+        AgentSaveData agent;
+        agent.agentId = static_cast<uint64_t>(ent->get_id());
+        agent.posX    = static_cast<int32_t>(ent->x);
+        agent.posY    = static_cast<int32_t>(ent->y);
+
+        auto metrics = ent->biology_get_metrics();
+        if (metrics.count("Energy"))    agent.energy    = metrics.at("Energy");
+        if (metrics.count("Max Energy")) agent.maxEnergy = metrics.at("Max Energy");
+        if (metrics.count("Health"))    agent.fitness   = metrics.at("Health");
+
+        totalEnergy += agent.energy;
+        payload.agents.push_back(std::move(agent));
+    }
+
+    payload.totalEnergy = totalEnergy;
+    payload.resources   = _resource_manager->getAllResources();
+
+    return payload;
+}
+
 
 std::vector<double> Simulation::filter_perception(std::vector<double> perception, int tilesToIgnore) const
 {

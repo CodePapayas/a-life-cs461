@@ -43,6 +43,7 @@
 # Build directories
 **/build/
 **/builds/
+**/build_main/
 **/cmake-build-*/
 
 # CMake build artifacts
