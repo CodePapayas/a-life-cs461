@@ -11,6 +11,7 @@
 #include <cmath>
 #include <iostream>
 #include <format>
+#include <iomanip>
 
 Simulation::Simulation()
     : _environment(nullptr)
@@ -45,7 +46,8 @@ void Simulation::initialize()
     entity->set_coordinates(Vector2d(0, 0)); // Set initial coordinates for the entity
     // Create a brain with a neural network architecture
     // Architecture: 28 inputs -> 8 hidden -> 8 hidden -> 6 outputs
-    std::vector<int> layer_sizes = {28, 8, 8, 6}; // 28 because perception size is 5x5 and then the entity's internal state (3 values for now)
+    // 25 perception tiles + Energy + Health + Water + Hunger + Thirst = 30 inputs
+    std::vector<int> layer_sizes = {30, 8, 8, 6};
     auto brain = std::make_shared<Brain>(layer_sizes);
     std::cout << "Brain created successfully with " << brain->get_layer_count() << " layers!" << std::endl;
 
@@ -57,6 +59,21 @@ void Simulation::initialize()
     entity->set_brain(brain);
     entity->set_biology(biology);
     std::cout << "Entity configured with brain and biology!" << std::endl;
+
+    // Print the raw genome bytes and decoded genetic values for the created entity
+    {
+        auto genome_bytes = entity->biology_get_genome_bytes();
+        std::cout << "Genome bytes: ";
+        for (size_t i = 0; i < genome_bytes.size(); ++i) {
+            std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)genome_bytes[i];
+            if (i + 1 < genome_bytes.size()) std::cout << " ";
+        }
+        std::cout << std::dec << std::setfill(' ');
+        std::cout << std::endl;
+
+        std::cout << "Decoded genetic values:" << std::endl;
+        entity->biology_get_genetics();
+    }
 
     // Add entity to the simulation
     _entities.push_back(std::move(entity));
@@ -117,6 +134,14 @@ std::vector<double> Simulation::get_perception() const
     return val.tile_values;
 }
 
+std::vector<ResourceNode*> Simulation::get_perceived_resources(int radius) const
+{
+    auto entity = get_primary_entity();
+    if (!entity || !_resource_manager) return {};
+    Position pos(entity->x, entity->y);
+    return _resource_manager->findResourcesInRange(pos, radius);
+}
+
 int Simulation::pass_perception_to_brain()
 {
     auto entity = get_primary_entity();
@@ -134,9 +159,18 @@ int Simulation::pass_perception_to_brain()
     
     // Get the filtered values based on the vision strength and add intetnal metrics
     std::vector<double> filteredPerception = filter_perception(perception, tilesToIgnore); // Start with just the tile values
-    filteredPerception.push_back(entity->biology_get_metrics()["Energy"]);
-    filteredPerception.push_back(entity->biology_get_metrics()["Health"]);
-    filteredPerception.push_back(entity->biology_get_metrics()["Water"]);
+    auto metrics = entity->biology_get_metrics();
+    double energy = metrics["Energy"];
+    double health = metrics["Health"];
+    double water = metrics["Water"];
+    double hunger = 1.0 - energy; // signal representing need to eat
+    double thirst = 1.0 - water;  // signal representing need to drink
+
+    filteredPerception.push_back(energy);
+    filteredPerception.push_back(health);
+    filteredPerception.push_back(water);
+    filteredPerception.push_back(hunger);
+    filteredPerception.push_back(thirst);
 
     // Get the decision from the brain
     int decision = entity->brain_get_decision(filteredPerception);
@@ -169,7 +203,42 @@ void Simulation::interpret_decision(int decision_code)
             break;
         case DecisionCodes::CONSUME:
             std::cout << "Entity consumes resources." << std::endl;
-            // Logic for consuming resources in current tile would go here
+            {
+                auto entity = get_primary_entity();
+                if (!entity) break;
+                // Use the entity's vision radius to discover resources
+                int vision_tiles = std::max(2, static_cast<int>(4 * entity->biology_get_genetic_value("Vision")));
+                auto nearby = get_perceived_resources(vision_tiles);
+                if (nearby.empty()) {
+                    std::cout << "No resources to consume nearby." << std::endl;
+                } else {
+                    // Pick nearest (first returned) and attempt to consume a small chunk
+                    ResourceNode* node = nearby.front();
+                    double request = std::min(0.25, node->getEnergyValue());
+                    double actual = node->consume(request);
+                    if (actual > 0.0) {
+                        switch (node->getType()) {
+                            case ResourceType::FOOD:
+                            case ResourceType::PLANT:
+                                entity->biology_eat(actual);
+                                break;
+                            case ResourceType::WATER:
+                                entity->biology_drink(actual);
+                                break;
+                            case ResourceType::MINERAL:
+                            case ResourceType::CUSTOM:
+                                // Map minerals/custom to a chemical trait for now
+                                entity->biology_add_chemical("Chem 1", actual);
+                                break;
+                        }
+                        std::cout << "Consumed " << actual << " from resource " << node->getID() << std::endl;
+                        // Clean up depleted resources
+                        _resource_manager->removeDepletedResources();
+                    } else {
+                        std::cout << "Resource had nothing to give." << std::endl;
+                    }
+                }
+            }
             break;
         default:
             std::cerr << "Unknown decision code: " << decision_code << std::endl;

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <algorithm>
 #include "../../environment/Environment.h"
+#include "genome.hpp"
 
 // idk, this was a suggestion for implementing randomness.
 static std::random_device rd;
@@ -12,13 +13,15 @@ static std::mt19937 gen(rd());
 static std::uniform_real_distribution<> dis(0.0, 1.0);
 
 Biology::Biology(bool debug)
-    : _energy(1.0), _health(1.0), _water(1.0)
+    : _energy(1.0), _health(MAX_HEALTH), _water(1.0)
 {
     _genetic_values = GetDefaultGeneticValues();
     if (!debug)
     {
         set_random_attributes();
     }
+    // Ensure genome bytes reflect current genetic values (either defaults or randomized)
+    _genome_bytes = Genome::encodeFromTraits(_genetic_values);
 }
 
 // ==================== Initialization & Setup ====================
@@ -34,6 +37,8 @@ void Biology::set_random_attributes()
         double random_val = dis(gen);
         pair.second = random_val * random_val; 
     }
+    // Keep genome consistent with the randomized genetic values
+    _genome_bytes = Genome::encodeFromTraits(_genetic_values);
 }
 
 // ==================== Getters ====================
@@ -75,6 +80,28 @@ std::unordered_map<std::string, double> Biology::get_genetic_vals() const
     return _genetic_values;
 }
 
+std::vector<uint8_t> Biology::get_genome_bytes() const
+{
+    return _genome_bytes;
+}
+
+void Biology::set_genome_bytes(const std::vector<uint8_t>& bytes)
+{
+    _genome_bytes = bytes;
+    _genetic_values = Genome::decodeToTraits(bytes);
+}
+
+void Biology::mutate_genome(double rate, double magnitude)
+{
+    Genome::mutateBytes(_genome_bytes, rate, magnitude);
+    _genetic_values = Genome::decodeToTraits(_genome_bytes);
+}
+
+std::vector<uint8_t> Biology::crossover_genomes(const std::vector<uint8_t>& a, const std::vector<uint8_t>& b)
+{
+    return Genome::crossover(a, b);
+}
+
 // ==================== Setters ====================
 
 void Biology::set_coordinates(const Vector2d& coords)
@@ -107,7 +134,7 @@ void Biology::set_efficiency(const std::string& type, double value)
 
 void Biology::add_health(double val)
 {
-    _health = std::min(_health + val, 1.0);
+    _health = std::min(_health + val, MAX_HEALTH);
 }
 
 void Biology::add_energy(double val)

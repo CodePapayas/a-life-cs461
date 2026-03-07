@@ -61,7 +61,7 @@ static void print_usage(const char* prog) {
     std::cout
         << "Usage: " << prog << " [options]\n"
         << "\nOptions:\n"
-        << "  --ticks N         Number of simulation ticks to run  (default: 10)\n"
+        << "  --ticks N         Number of simulation ticks to run  (default: run until entity dies)\n"
         << "  --autosave K      Autosave every K ticks, 0=off      (default: 0)\n"
         << "  --buffer-size N   Circular buffer capacity            (default: 1000)\n"
         << "  --save-dir DIR    Directory for autosave files        (default: saves/)\n"
@@ -71,7 +71,8 @@ static void print_usage(const char* prog) {
 int main(int argc, char* argv[]) {
 
     // ---- Default configuration ----
-    int         numTicks         = 10;
+    // 0 (or negative) => run until primary entity dies
+    int         numTicks         = 0;
     int         autosaveInterval = 0;       // 0 = autosave disabled
     size_t      bufferCapacity   = 1000;
     std::string saveDir          = "saves";
@@ -115,31 +116,34 @@ int main(int argc, char* argv[]) {
     }
 
     // ---- Main simulation loop ----
+    // If numTicks <= 0 we run until the primary entity dies; otherwise run
+    // up to `numTicks` iterations.
     int autosaveCount = 0;
-
-    for (int i = 0; i < numTicks; ++i) {
-        std::cout << "\n=== Tick " << (i + 1) << " ===" << std::endl;
+    int tick = 0;
+    while (numTicks <= 0 || tick < numTicks) {
+        ++tick;
+        std::cout << "\n=== Tick " << tick << " ===" << std::endl;
         int result = sim.tick();
 
-        stateHistory.push(capture_state(sim, static_cast<uint64_t>(i + 1)));
+        stateHistory.push(capture_state(sim, static_cast<uint64_t>(tick)));
 
         // Autosave check
-        if (autosaveInterval > 0 && (i + 1) % autosaveInterval == 0) {
+        if (autosaveInterval > 0 && tick % autosaveInterval == 0) {
             ++autosaveCount;
             std::string path = saveDir + "/autosave_tick_"
-                             + std::to_string(i + 1) + ".txt";
+                             + std::to_string(tick) + ".txt";
             save_buffer_to_file(stateHistory, path);
-            std::cout << "[AUTOSAVE] tick " << (i + 1)
+            std::cout << "[AUTOSAVE] tick " << tick
                       << " -> " << path
                       << "  (buffer: " << stateHistory.size()
                       << "/" << stateHistory.capacity() << ")" << std::endl;
         }
 
         if (result == -1) {
-            std::cout << "Entity died at tick " << (i + 1) << "." << std::endl;
+            std::cout << "Entity died at tick " << tick << "." << std::endl;
             if (autosaveInterval > 0) {
                 std::string path = saveDir + "/autosave_final_tick_"
-                                 + std::to_string(i + 1) + ".txt";
+                                 + std::to_string(tick) + ".txt";
                 save_buffer_to_file(stateHistory, path);
                 std::cout << "[AUTOSAVE] Final save -> " << path << std::endl;
             }

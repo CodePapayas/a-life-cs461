@@ -3,9 +3,11 @@
 
 #include <unordered_map>
 #include <string>
+#include <vector>
 #include <memory>
 #include "biology_constants.hpp"
 #include "../../environment/MathVector.hpp"
+#include "genome.hpp"
 
 /**
  * @class Biology
@@ -22,6 +24,7 @@ private:
     double _health;
     double _water;
     std::unordered_map<std::string, double> _genetic_values;
+    std::vector<uint8_t> _genome_bytes;
 
 public:
     /**
@@ -86,6 +89,26 @@ public:
      * @return A map containing the genetic values
      */
     std::unordered_map<std::string, double> get_genetic_vals() const;
+
+    /**
+     * @brief Returns the raw genome bytes (compact representation)
+     */
+    std::vector<uint8_t> get_genome_bytes() const;
+
+    /**
+     * @brief Sets the genome bytes; decodes them into genetic values
+     */
+    void set_genome_bytes(const std::vector<uint8_t>& bytes);
+
+    /**
+     * @brief Mutate the stored genome in-place, then re-decode genetics
+     */
+    void mutate_genome(double rate, double magnitude);
+
+    /**
+     * @brief Single-point crossover utility for genomes
+     */
+    static std::vector<uint8_t> crossover_genomes(const std::vector<uint8_t>& a, const std::vector<uint8_t>& b);
 
     // ==================== Setters ====================
 

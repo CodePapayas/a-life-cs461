@@ -9,6 +9,8 @@ constexpr double ENERGY_DRAIN_COEFFICIENT = .5;
 constexpr double TERRAIN_ENERGY_COEFFICIENT = .5;
 constexpr double TERRAIN_WATER_COEFFICIENT = .2;
 constexpr double HEALTH_COEFFICIENT = .5;
+// Maximum starting and clamped health value for organisms
+constexpr double MAX_HEALTH = 5.0;
 
 // Terrain type identifiers
 const std::string TERRAIN_1 = "Traversal Efficiency 1";

@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include "../environment/Environment.h"
+#include "../environment/resource_node.h"
 #include "../entity/decision_center/entity.hpp"
 #include "../entity/perception_movement/perception.hpp"
 
@@ -109,6 +110,11 @@ public:
      * @return The vision value as a float
      */
     float get_vision_value() const;
+
+    /**
+     * @brief Returns list of resource nodes perceived within the given radius around primary entity
+     */
+    std::vector<ResourceNode*> get_perceived_resources(int radius) const;
 
     std::vector<double> filter_perception(std::vector<double> perception, int tilesToIgnore) const;
 

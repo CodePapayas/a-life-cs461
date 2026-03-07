@@ -242,6 +242,16 @@ std::unordered_map<std::string, double> Entity::biology_get_genetics()
     return _biology->get_genetic_vals();
 }
 
+std::vector<uint8_t> Entity::biology_get_genome_bytes()
+{
+    if (_biology == nullptr)
+    {
+        std::cerr << "Warning: no biology detected" << std::endl;
+        return std::vector<uint8_t>();
+    }
+    return _biology->get_genome_bytes();
+}
+
 double Entity::biology_get_genetic_value(const std::string& gene)
 {
     if (_biology == nullptr)

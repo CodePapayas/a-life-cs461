@@ -9,6 +9,7 @@ set(DECISION_CENTER_SOURCES
     source/entity/decision_center/brain.cpp
     source/entity/decision_center/entity.cpp
     source/entity/decision_center/biology.cpp
+    source/entity/decision_center/genome.cpp
 )
 
 # Perception and Movement sources
@@ -30,6 +31,13 @@ add_executable(main
     ${PERCEPTION_MOVEMENT_SOURCES}
     ${DECISION_CENTER_SOURCES}
 )
+
+# Small test executable for genome unit tests
+add_executable(test_genome
+    test/test_genome.cpp
+    ${PROJECT_SOURCE_DIR}/source/entity/decision_center/genome.cpp
+)
+
 
 # Include directories
 include_directories(

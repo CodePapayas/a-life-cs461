@@ -212,6 +212,11 @@ public:
     double biology_get_genetic_value(const std::string& gene);
 
     /**
+     * @brief Returns the raw genome bytes from the biology
+     */
+    std::vector<uint8_t> biology_get_genome_bytes();
+
+    /**
      * @brief Tells the biology to drain energy and water based on terrain type
      * @param terrain The terrain type identifier
      * @return A pair of (energy_drain, water_drain)
