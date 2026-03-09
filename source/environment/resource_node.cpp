@@ -3,7 +3,7 @@
   Oregon State University
   CS 462 
 */
-#include "../include/resource_node.h"
+#include "resource_node.h"
 #include <algorithm>
 #include <limits>
 
@@ -86,6 +86,15 @@ vector<ResourceNode*> ResourceManager::findResourcesInRange(const Position& pos,
     }
     
     return result;
+}
+
+ResourceNode* ResourceManager::getResourceAtPosition(const Position& pos) {
+    for (auto& resource : m_resources) {
+        if (!resource->isDepleted() && resource->getPosition().x == pos.x && resource->getPosition().y == pos.y) {
+            return resource.get();
+        }
+    }
+    return nullptr;  // No resource at this position
 }
 
 ResourceNode* ResourceManager::findNearestResource(const Position& pos, int32_t maxRange) {

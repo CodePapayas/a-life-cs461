@@ -46,7 +46,7 @@ ActivationLayerReLU::ActivationLayerReLU(int input_size, int output_size) {
     n_out = output_size;
     weights.resize(input_size * output_size);
     biases.resize(n_out);
-    std::mt19937 gen(std::time(nullptr));
+    std::mt19937 gen(std::time(nullptr)); // Seed with current time
     std::uniform_real_distribution<double> dist(-1.0, 1.0);
 
 

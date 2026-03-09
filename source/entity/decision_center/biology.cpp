@@ -140,7 +140,7 @@ double Biology::eat_energy(double quantity)
      */
     double amount = quantity * _genetic_values["Energy Efficiency"];
     amount *= std::pow(1.0 - _genetic_values["Mass"], 0.5);
-    add_energy(amount);
+    add_energy(amount * FOOD_ENERGY_COEFFICIENT);
     return amount;
 }
 
@@ -151,7 +151,7 @@ double Biology::drink_water(double quantity)
      * efficiency.
      */
     double amount = quantity * _genetic_values["Water Efficiency"];
-    add_water(amount);
+    add_water(amount * FOOD_ENERGY_COEFFICIENT);
     return amount;
 }
 
@@ -250,12 +250,8 @@ double Biology::tick_energy_drain()
 
     // Calculate the drain: sqrt of sum, divided by number of traits, adjusted for mass
     total = std::pow(total, 0.5) / static_cast<double>(_genetic_values.size());
-    total = std::max(
-        total * (1.0 - std::pow(_genetic_values["Mass"], 2.0)),
-        0.02
-    );
-
-    double drain = total * ENERGY_DRAIN_COEFFICIENT;
+    total = total * (1.0 - std::pow(_genetic_values["Mass"], 2.0));
+    double drain = std::max(total * ENERGY_DRAIN_COEFFICIENT,.02);
     add_energy(drain * -1);
     return total;
 }

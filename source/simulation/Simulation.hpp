@@ -22,6 +22,7 @@ private:
     std::vector<std::unique_ptr<Entity>> _entities;
     std::unique_ptr<Perception> _perception;
     std::unique_ptr<ResourceManager> _resource_manager;
+    int _debug;
 
 public:
     /**
@@ -53,7 +54,7 @@ public:
      * @return Pointer to the perception object
      */
     std::vector<double> get_perception() const;
-
+    std::vector<double> get_perception_expanded(const std::string& type) const;
     /**
      * @brief Sends perception plus internal state to the entity brain and returns a decision code
      * @return The decision code, or -1 on error
@@ -67,12 +68,15 @@ public:
      * @return Pointer to the first entity
      */
     Entity* get_primary_entity() const;
+    void set_primary_entity(const Entity& entity);
+    void set_primary_entity_random();
 
     void interpret_decision(int decision_code);
 
     void execute_movement(int direction);
+    void consumption();
 
-    int tick();
+    int tick(int print =1);
 
     /**
      * @brief Returns number of entities in the simulation. Surpisingly helpful in diagnosing bugs.

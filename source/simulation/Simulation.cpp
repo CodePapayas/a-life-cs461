@@ -8,6 +8,7 @@
 #include "../entity/perception_movement/movement.hpp"
 #include "../environment/resource_node.h"
 #include "../entity/decision_center/mutate.hpp"
+#include "../entity/decision_center/biology_constants.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -45,8 +46,8 @@ void Simulation::initialize()
     std::cout << "Entity created successfully with ID: " << entity->get_id() << std::endl;
     entity->set_coordinates(Vector2d(0, 0)); // Set initial coordinates for the entity
     // Create a brain with a neural network architecture
-    // Architecture: 28 inputs -> 8 hidden -> 8 hidden -> 6 outputs
-    std::vector<int> layer_sizes = {28, 8, 8, 6}; // 28 because perception size is 5x5 and then the entity's internal state (3 values for now)
+    // Architecture: 28 inputs -> 8 hidden -> 8 hidden -> 6 outputs () (128 inputs for 5x5 perception of 3 environtypes and food and water + 3 internal state metrics)
+    std::vector<int> layer_sizes = {128, 200, 200, 6}; // 28 because perception size is 5x5 and then the entity's internal state (3 values for now)
     auto brain = std::make_shared<Brain>(layer_sizes);
     std::cout << "Brain created successfully with " << brain->get_layer_count() << " layers!" << std::endl;
 
@@ -75,6 +76,7 @@ void Simulation::initialize()
 void Simulation::seed_resources()
 {
     // Example of seeding some resources in the environment
+    _resource_manager->clear(); // Clear existing resources before seeding new ones
     for (int x =0; x < _environment->getTileAmountX(); x += 1) {
         for (int y = 0; y < _environment->getTileAmountY(); y += 1) {
             float randomValue = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -101,6 +103,9 @@ float Simulation::environGetTileValue(int x, int y) const
 
 Entity* Simulation::reproduce(Entity* p1, Entity* p2)
 {
+    // Redirect cout to null to suppress output during reproduction
+    std::streambuf* originalCoutBuffer = std::cout.rdbuf();
+    std::cout.rdbuf(nullptr);
     Entity* brainParent = (rand() % 2 == 0) ? p1 : p2; // pick one parent for brain
     std::unordered_map<std::string, double> p1_genetics = p1->biology_get_genetics();
     std::unordered_map<std::string, double> p2_genetics = p2->biology_get_genetics();
@@ -116,7 +121,6 @@ Entity* Simulation::reproduce(Entity* p1, Entity* p2)
     }
     // Mutate the child's genetics
     child_genetics = mutate_genetics(child_genetics);
-    Brain* newBrain = new Brain(*brainParent->get_brain()); // Copy the brain of the chosen parent, will be mutated in the future
     // Create a new entity with the child's genetics
     Entity* child = new Entity();
     child->set_biology(std::make_shared<Biology>(false)); // false for random genetics, will be overwritten by set_genetic_vals
@@ -124,17 +128,62 @@ Entity* Simulation::reproduce(Entity* p1, Entity* p2)
     // Copy the parents brain, mutate hthe weights and biases, and set it to the child,
     child->set_brain(std::make_shared<Brain>(*brainParent->get_brain()));   
     std::vector<ActivationLayerReLU>& parent_layers = brainParent->get_brain()->get_layers();
+    int layer_index = 0;
     for (auto& layer : parent_layers) {
         std::vector<double> mutated_weights = mutate_vector(layer.get_weights());
         std::vector<double> mutated_biases = mutate_vector(layer.get_biases());
-        child->get_brain()->get_layers()[&layer - &parent_layers[0]].ActivationLayerReLUOffsping(mutated_weights, mutated_biases);
+        child->get_brain()->get_layers()[layer_index].ActivationLayerReLUOffsping(mutated_weights, mutated_biases);
+        layer_index++;
     }
     // child-get_brain()->set_layers(mutated_layers);
     _entities.push_back(std::unique_ptr<Entity>(child));
+    // Restore the original cout buffer
+    std::cout.rdbuf(originalCoutBuffer);
     return child;
 }
 
+void Simulation::set_primary_entity(const Entity& entity){
+    _entities.clear();
+    
+    auto cloned = std::make_unique<Entity>();
+    //cloned->set_coordinates(Vector2d(0,0)); // Set initial coordinates for the entity
+    cloned->set_coordinates(Vector2d(rand() % _environment->getTileAmountX(), rand() % _environment->getTileAmountY())); // Set random initial coordinates for the entity
+    if (entity.get_brain()) {
+        cloned->set_brain(std::make_unique<Brain>(*entity.get_brain()));
+    }
+    if (entity.get_biology()) {
+        cloned->set_biology(std::make_unique<Biology>(*entity.get_biology()));
+    }
+    // Make sure the clone doesn't copy the metrics of the original.
+    cloned->get_biology()->add_energy(1.);
+    cloned->get_biology()->add_health(1.);
+    cloned->get_biology()->add_water(1.);
+    _entities.push_back(std::move(cloned));
+}
+void Simulation::set_primary_entity_random(){
+    _entities.clear(); // Clear existing entities
+    auto entity = std::make_unique<Entity>();
+    std::cout << "Entity created successfully with ID: " << entity->get_id() << std::endl;
+    //entity->set_coordinates(Vector2d(0, 0)); // Set initial coordinates for the entity
+    entity->set_coordinates(Vector2d(rand() % _environment->getTileAmountX(), rand() % _environment->getTileAmountY())); // Set random initial coordinates for the entity
+    // Create a brain with a neural network architecture
+    // Architecture: 28 inputs -> 8 hidden -> 8 hidden -> 6 outputs () (128 inputs for 5x5 perception of 3 environtypes and food and water + 3 internal state metrics)
+    std::vector<int> layer_sizes = {128, 200, 200, 6}; // 28 because perception size is 5x5 and then the entity's internal state (3 values for now)
+    auto brain = std::make_shared<Brain>(layer_sizes);
+    std::cout << "Brain created successfully with " << brain->get_layer_count() << " layers!" << std::endl;
 
+    // Create biology
+    auto biology = std::make_shared<Biology>(false);  // false for randomized genetics
+    std::cout << "Biology created successfully!" << std::endl;
+
+    // Set the brain and biology on the entity
+    entity->set_brain(brain);
+    entity->set_biology(biology);
+    std::cout << "Entity configured with brain and biology!" << std::endl;
+
+    // Add entity to the simulation
+    _entities.push_back(std::move(entity));
+}
 Entity* Simulation::get_primary_entity() const
 {
     if (_entities.empty())
@@ -155,6 +204,20 @@ std::vector<double> Simulation::get_perception() const
     return val.tile_values;
 }
 
+std::vector<double> Simulation::get_perception_expanded(const std::string& type) const
+{
+    std::vector<double> expanded_perception;
+    std::vector<double> type_values = _perception->extract_tile_values_in_radius_of_type(
+        get_primary_entity()->get_coordinates().x,
+        get_primary_entity()->get_coordinates().y,
+        *_environment,
+            2,
+        *_resource_manager,
+        type
+    );
+return type_values;
+}
+
 int Simulation::pass_perception_to_brain()
 {
     auto entity = get_primary_entity();
@@ -164,25 +227,53 @@ int Simulation::pass_perception_to_brain()
         return -1; // Indicate an error
     }
     // Get the value of all tiles
-    std::vector<double> perception = get_perception();
-
-    // Get the strength of the entities vision and determine how many tiles to ignore
-    float vision_value = entity->biology_get_genetic_value("Vision");
-    int tilesToIgnore = std::max(static_cast<int>(25.0 - (25 * vision_value)), 1); // at max vision (1.0), ignore 0 tiles, at min vision (0.0) ignore 24 tiles (only sees own tile) 
+    //std::vector<double> perception = get_perception();
+    std::vector<double> filteredPerception;
+    enum Types {FOOD=0, WATER=1, TERRAIN_1=2, TERRAIN_2=3, TERRAIN_3=4};
+    // Iterate over each tile type and concatenate the perception values for each type together. This is a bit hacky but it works for now until we have a better system for encoding tile types and perception.
+    for (int type = FOOD; type <= TERRAIN_3; type++) {
+        std::string type_str;
+        switch (type) {
+            case FOOD:
+                type_str = "FOOD";
+                break;
+            case WATER:
+                type_str = "WATER";
+                break;
+            case TERRAIN_1:
+                type_str = "TERRAIN_1";
+                break;
+            case TERRAIN_2:
+                type_str = "TERRAIN_2";
+                break;
+            case TERRAIN_3:
+                type_str = "TERRAIN_3";
+                break;
+        }
+        std::vector<double> perception = get_perception_expanded(type_str);
+        // Get the strength of the entities vision and determine how many tiles to ignore
+        float vision_value = entity->biology_get_genetic_value("Vision");
+        int tilesToIgnore = std::max(static_cast<int>(25.0 - (25 * vision_value)), 1); // at max vision (1.0), ignore 0 tiles, at min vision (0.0) ignore 24 tiles (only sees own tile) 
     
-    // Get the filtered values based on the vision strength and add intetnal metrics
-    std::vector<double> filteredPerception = filter_perception(perception, tilesToIgnore); // Start with just the tile values
+    // Add the filtered values to the master perception list
+        std::vector<double> adaptedVision = filter_perception(perception, tilesToIgnore);
+        filteredPerception.insert(filteredPerception.end(), adaptedVision.begin(), adaptedVision.end());  
+    }
     filteredPerception.push_back(entity->biology_get_metrics()["Energy"]);
     filteredPerception.push_back(entity->biology_get_metrics()["Health"]);
     filteredPerception.push_back(entity->biology_get_metrics()["Water"]);
-
     // Get the decision from the brain
+    if (_debug){
+        std::cout << "Filtered Perception Length: " << filteredPerception.size() << " with "<< entity->biology_get_genetic_value("Vision")<<std::endl;
+    }
     int decision = entity->brain_get_decision(filteredPerception);
     return decision;
 }
 
 void Simulation::interpret_decision(int decision_code)
 {
+    auto entity = get_primary_entity();
+    std::cout << "Entity's current position" << " (" << entity->x << ", " << entity->y << ")" << std::endl;
     switch (static_cast<DecisionCodes>(decision_code))
     {
         case DecisionCodes::MOVE_UP:
@@ -208,6 +299,7 @@ void Simulation::interpret_decision(int decision_code)
         case DecisionCodes::CONSUME:
             std::cout << "Entity consumes resources." << std::endl;
             // Logic for consuming resources in current tile would go here
+            Simulation::consumption();
             break;
         default:
             std::cerr << "Unknown decision code: " << decision_code << std::endl;
@@ -225,27 +317,80 @@ void Simulation::execute_movement(int direction){
     int prev_y = entity->y;
     // Fetch the new coordinates and update the entity's position
     std::vector<int> new_coords = Movement::execute_movement_wraparound(entity->x, entity->y, action, _environment->getTileAmountX(), _environment->getTileAmountY(), entity->biology_get_metrics()["Energy"]);
+    if(new_coords[0]>=_environment->getTileAmountX() || new_coords[1] >= _environment->getTileAmountY() || new_coords[0] < 0 || new_coords[1] < 0){
+        std::cerr << "Error: Movement resulted in out of bounds coordinates (" << new_coords[0] << ", " << new_coords[1] << ")" << std::endl;
+        return;
+    }
     entity->set_coordinates(Vector2d(new_coords[0], new_coords[1]));
-    std::cout << "Entity moved from (" << prev_x << ", " << prev_y << ") to (" << entity->x << ", " << entity->y << ")" << std::endl;
+    std::string terrain_type = _environment->getTileType(Vector2d(entity->x, entity->y));
+    std::cout << "Entity moved from (" << prev_x << ", " << prev_y << ") to (" << entity->x << ", " << entity->y << ") on type " << terrain_type << std::endl;
     // Need to drain energy based on the terrain type of the new tile and the entity's biology
-    //entity->biology_movement(_environment->getTileType(Vector2d(entity->x, entity->y))); // Something like this in practice
-    entity->biology_movement("Terrain 1"); // Placeholder until we have actual terrain types implemented
+    //entity->biology_movement(_environment->getTileType((entity->x, entity->y))); // Something like this in practice
+    entity->biology_movement(terrain_type); // Placeholder until we have actual terrain types implemented
+    
+    //check if there's a resource on the new tile and consume it if there is
+    ResourceNode* resource = _resource_manager->getResourceAtPosition(Position(entity->x, entity->y));
+    if (resource) {
+        double energyGained = resource->consume(entity->biology_get_genetic_value("Mass")); // Consume energy based on Mass ?
+        if (resource->getType() == ResourceType::FOOD) {
+            std::cout << "Entity consumed FOOD resource for" << energyGained << " raw energy." << std::endl;
+            entity->biology_eat(energyGained); // Add the consumed energy to the entity's biology
+        } else if (resource->getType() == ResourceType::WATER) {
+            std::cout << "Entity consumed WATER resource for " << energyGained << " raw water." << std::endl;
+            entity->biology_drink(energyGained); // Add the consumed energy to the entity's biology
+        }
+    }
+
 }   
 
-int Simulation::tick(){
+void Simulation::consumption(){
+    Entity* entity = get_primary_entity();
+    ResourceNode* resource = _resource_manager->getResourceAtPosition(Position(entity->x, entity->y));
+    if (resource) {
+        double energyGained = resource->consume(entity->biology_get_genetic_value("Mass")); // Consume energy based on Mass ?
+        if (resource->getType() == ResourceType::FOOD) {
+            std::cout << "Entity consumed FOOD resource for" << energyGained << " raw energy." << std::endl;
+            entity->biology_eat(energyGained); // Add the consumed energy to the entity's biology
+        } else if (resource->getType() == ResourceType::WATER) {
+            std::cout << "Entity consumed WATER resource for " << energyGained << " raw water." << std::endl;
+            entity->biology_drink(energyGained); // Add the consumed energy to the entity's biology
+        }
+    }
+    else{
+        std::cout << "Entity could not consume anything on this tile..." << endl; 
+    }
+}
+
+int Simulation::tick(int print){
     // Get the perception for the primary entity and pass it to the brain to get a decision
+    _debug = print;
+    if (!print){
+        //redirect cout to null to avoid spamming the console with debug info every tick, will be reenabled at the end of the tick
+        std::cout.setstate(std::ios_base::failbit);
+    }
     std::vector<double> perception = get_perception();
     int decision = pass_perception_to_brain();
     interpret_decision(decision);
     get_primary_entity()->update_biology(); // Handle biology updates like energy drain, health regen, etc.
     get_primary_entity()->biology_get_metrics(true);
-    display_environment();
+    cout << _environment->getTileAmountX() << "x" << _environment->getTileAmountY() << endl;
+    if (print){
+        display_environment();
+    }
     bool entity_dead = get_primary_entity()->biology_check_death();
     if (entity_dead) {
+        //repoint cout before printing death message
+        if (!print){
+            std::cout.clear();
+        }
         std::cout << "Entity has died. Ending simulation." << std::endl;
         // In a more complex simulation, we might want to remove the entity and continue
         return -1;
     }
+    if (!print){
+        std::cout.clear();
+    }
+
     return 0; // Return 0 to indicate the tick completed successfully
 }
 
@@ -388,6 +533,9 @@ void Simulation::display_environment() const
 
     Vector2d entity_pos = get_primary_entity() ? get_primary_entity()->get_coordinates() : Vector2d(-1, -1);
 
+    constexpr const char* kSolidBlock = u8"\u2588\u2588";
+    constexpr const char* kLightShade = u8"\u2591\u2591";
+
     std::cout << "\n=== Environment Display ===\n" << std::endl;
     // Normal 2d traversal of the environment grid
     for (int y = 0; y < _environment->getTileAmountY(); ++y)
@@ -404,18 +552,27 @@ void Simulation::display_environment() const
                 g = (int)((curr_health) * 255);
                 b = (int)((curr_health) * 255);
                 std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                          << ((char) 219)
-                          << ((char) 219)
+                          << kSolidBlock
                           << "\033[0m"; // Reset color
             }
             else if(!_resource_manager->findResourcesInRange(Position(x, y), 0).empty()) // Check if there's a resource at this location
             {
-                // Display resource as green R
-                std::cout << "\033[92m"  // Green color
-                        << ((char) 219)
-                          << ((char) 219)
+                // Display resource as Blue blocks if water, yellow for energy, with intensity based on the energy value of the resource
+                double energy_value = _resource_manager->getResourceAtPosition(Position(x, y))->getEnergyValue();
+                int intensity = static_cast<int>(energy_value * 255);
+                if (_resource_manager->getResourceAtPosition(Position(x, y))->getType() == ResourceType::FOOD) {
+                    // Yellow color for food
+                    std::cout << "\033[38;2;" << intensity << ";" << intensity << ";0m"  // Yellow color with intensity
+                              << kSolidBlock
+                              << "\033[0m"; // Reset color
+                }
+                else {
+                    // Blue color for water 
+                    std::cout << "\033[38;2;0;0;" << intensity << "m"  // Blue color with intensity
+                          << kSolidBlock
                           << "\033[0m"; // Reset color
 
+                }
             }
             else
             {
@@ -432,8 +589,7 @@ void Simulation::display_environment() const
                 bool aesthetic = true;
                 if(aesthetic){
                     std::cout << "\033[38;2;" << r << ";" << g << ";" << b << "m"
-                            << ((char) 177)
-                            << ((char) 177)
+                            << kLightShade
                             << "\033[0m";
                 } else {
                     // Alternative print method, prints the value instead of 0

@@ -5,10 +5,11 @@
 #include <string>
 
 // Energy and resource coefficients
-constexpr double ENERGY_DRAIN_COEFFICIENT = .5;
-constexpr double TERRAIN_ENERGY_COEFFICIENT = .5;
-constexpr double TERRAIN_WATER_COEFFICIENT = .2;
-constexpr double HEALTH_COEFFICIENT = .5;
+constexpr double ENERGY_DRAIN_COEFFICIENT = .01;
+constexpr double FOOD_ENERGY_COEFFICIENT = 6.0;
+constexpr double TERRAIN_ENERGY_COEFFICIENT = .01;
+constexpr double TERRAIN_WATER_COEFFICIENT = .01;
+constexpr double HEALTH_COEFFICIENT = .01;
 
 // Terrain type identifiers
 const std::string TERRAIN_1 = "Traversal Efficiency 1";

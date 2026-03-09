@@ -24,8 +24,10 @@
 // Tile class, holds environment data at coordinate position.
 class Tile{
 	std::vector<double> values; // currently an arbitrary value for tracking things like noise
+    std::string terrain_type; // placeholder for now, will be used to track the type of terrain for the tile, which will affect movement and energy drain for entities on it. Will likely be an int or enum in practice, but string is easier for testing for now.
 	public:
 		Tile(std::vector<double> value_list) {
+            terrain_type="Terrain Efficiency " + std::to_string(rand() % 3 + 1); // placeholder random terrain type
             for(auto value : value_list){
                 values.push_back(value); //placeholder random value noise
             }
@@ -33,6 +35,8 @@ class Tile{
         std::vector<double> getValues(){return values;};
         void setValues(std::vector<double> v){values = v;};
         void setValue(double v, int index){values[index] = v;};
+        std::string getTerrainType(){return terrain_type;};
+        
 };
 
 // constructor for environment
@@ -95,6 +99,10 @@ double Environment::getTileValue(Vector2d pos, int index){
     // ouput: double value; the value in the tile
     return getTile(pos)->getValues()[index];
 };
+
+std::string Environment::getTileType(Vector2d pos){
+    return getTile(pos)->getTerrainType();
+}
 
 void Environment::setTileValue(Vector2d pos, double v, int index){
     getTile(pos)->setValue(v, index);

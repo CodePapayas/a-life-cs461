@@ -73,6 +73,7 @@ public:
     ResourceNode* createResource(Position pos, ResourceType type, double energyValue, bool renewable = false);
     void update(double deltaTime);
     
+    ResourceNode* getResourceAtPosition(const Position& pos);
     vector<ResourceNode*> findResourcesInRange(const Position& pos, int32_t range);
     ResourceNode* findNearestResource(const Position& pos, int32_t maxRange = 0);
     size_t removeDepletedResources();

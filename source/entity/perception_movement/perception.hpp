@@ -1,8 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 class Environment;
+class ResourceManager;
 
 /**
  * Perception module - handles sensory input from environment
@@ -37,6 +39,15 @@ public:
         Environment& environment,
         int radius = 2
     );
+    
+    std::vector<double> extract_tile_values_in_radius_of_type(
+        int center_x,
+        int center_y,
+        Environment& environment,
+        int radius,
+        ResourceManager& manager,
+        std::string tile_type
+     );
 
     /**
      * Legacy function for backward compatibility with difficulty map interface
@@ -57,6 +68,7 @@ private:
      * @param radius - Perception radius
      * @return Vector of tile values in the perception area
      */
+
     static std::vector<double> extract_tile_values_in_radius(
         int center_x,
         int center_y,

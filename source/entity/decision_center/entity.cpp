@@ -53,6 +53,7 @@ void Entity::set_coordinates(const Vector2d& coords)
 {
     x = static_cast<int>(coords.x);
     y = static_cast<int>(coords.y);
+
 }
 
 Vector2d Entity::get_coordinates() const
@@ -253,7 +254,7 @@ double Entity::biology_get_genetic_value(const std::string& gene)
     try
     {
         double val = _biology->get_efficiency(gene);
-        std::cout << gene << ": " << val << std::endl;
+        //std::cout << gene << ": " << val << std::endl;
         return val;
     }
     catch (const std::out_of_range&)

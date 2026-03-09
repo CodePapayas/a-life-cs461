@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include "MathVector.hpp"
 
+
 // placeholder classes for functionality, may be extrapolated into their own files later
 class Vector2d;
 class Tile;
@@ -20,7 +21,7 @@ class Chunk;
 
 class Environment
 {
-private:
+private:    
     int _size_x;
     int _size_y;
     std::vector<std::vector<Tile*>> tiles;    
@@ -33,6 +34,7 @@ public:
     std::vector<double> getTileValues(Vector2d pos);
     void setTileValues(Vector2d pos, std::vector<double> v);
     double getTileValue(Vector2d pos, int index);
+    std::string getTileType(Vector2d pos);
     void setTileValue(Vector2d pos, double v, int index);
 
     int getTileAmountX() {return tiles.size();};
