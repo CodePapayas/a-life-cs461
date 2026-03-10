@@ -56,9 +56,7 @@ class PerlinNoise2d{
 			}
 			for(int s = 0; s < shuffle_times; s++){		// shuffle the desired number of times
 				for(int i = p.size()-1; i > 0; i--){	// work backwards through the permutation table.
-					int index = round(rand() * i-1);	// get a random value, adjusted to a different relative position
-					if(index < 0){std::cout << "ERROR OUT OF BOUNDS" << std::endl;}
-					index = index % p.size(); 			// ensure the index does not exceed the bounds of the permutation table
+					int index = rand() % (i + 1);		// get a random index in [0, i] for Fisher-Yates shuffle
 					double temp = p[i];					// swap the values
 					p[i] = p[index];					
 					p[index] = temp;					

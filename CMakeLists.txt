@@ -39,6 +39,16 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/source/entity/perception_movement
 )
 
+# Alpha runner
+add_executable(alphaDemonstration
+    alphaDemonstration.cpp
+    source/simulation/Simulation.cpp
+    source/environment/Environment.cpp
+    source/environment/resource_node.cpp
+    ${PERCEPTION_MOVEMENT_SOURCES}
+    ${DECISION_CENTER_SOURCES}
+)
+
 # Link decision_center static library
 if(TARGET decision_center)
     target_link_libraries(main_exe PRIVATE decision_center)
