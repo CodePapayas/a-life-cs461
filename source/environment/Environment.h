@@ -17,7 +17,24 @@
 
 // placeholder classes for functionality, may be extrapolated into their own files later
 class Vector2d;
-class Tile;
+class Tile{
+	std::vector<double> values; // currently an arbitrary value for tracking things like noise
+    double current_temp;
+    double current_moisture;
+    std::string terrain_type; // placeholder for now, will be used to track the type of terrain for the tile, which will affect movement and energy drain for entities on it. Will likely be an int or enum in practice, but string is easier for testing for now.
+	public:
+		Tile(std::vector<double> value_list);
+        std::vector<double> getValues(){return values;};
+        void setValues(std::vector<double> v){values = v;};
+        void setValue(double v, int index){values[index] = v;};
+        void    setTemperature(double t) {current_temp = t;};
+        double  getTemperature() {return current_temp;};
+        void    setMoisture(double m) {current_moisture = m;};
+        double  getMoisture() {return current_moisture;};
+        void updateConditions();
+        std::string getTerrainType(){return terrain_type;};
+        
+};
 class Chunk;
 
 class Environment
