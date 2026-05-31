@@ -82,6 +82,14 @@ public:
     double getTotalEnergy() const;
     void clear();
 
+    // Raw pointer view over all resources for read-only iteration (no copies).
+    std::vector<ResourceNode*> getAllResources() const {
+        std::vector<ResourceNode*> out;
+        out.reserve(m_resources.size());
+        for (const auto& r : m_resources) out.push_back(r.get());
+        return out;
+    }
+
 private:
     vector<unique_ptr<ResourceNode>> m_resources;
 };

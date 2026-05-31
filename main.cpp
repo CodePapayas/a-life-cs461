@@ -233,10 +233,18 @@ int runSimulation(int numTicks, int autosaveInterval, size_t bufferCapacity, con
                   << " tick(s) -> " << saveDir << "/" << std::endl;
     }
 
+    if (Entity* primary = sim.get_primary_entity()) {
+        std::cout << "\n=== Initial Stats ===" << std::endl;
+        primary->biology_get_metrics(true);
+    }
+
     // ---- Main simulation loop ----
     int autosaveCount = 0;
+    // Target ~60ms per rendered tick so the terminal can keep up without tearing.
+    constexpr auto kMinTickDuration = std::chrono::milliseconds(60);
 
     for (int i = 0; i < numTicks; ++i) {
+        auto tick_start = std::chrono::steady_clock::now();
         int result = sim.tick(1);
 
         stateHistory.push(capture_state(sim, static_cast<uint64_t>(i + 1)));
@@ -256,6 +264,16 @@ int runSimulation(int numTicks, int autosaveInterval, size_t bufferCapacity, con
             }
             break;
         }
+
+        auto elapsed = std::chrono::steady_clock::now() - tick_start;
+        if (elapsed < kMinTickDuration)
+            std::this_thread::sleep_for(kMinTickDuration - elapsed);
+    }
+
+    std::cout << "\033[2J\033[H\033[?25h" << std::endl;
+    if (Entity* primary = sim.get_primary_entity()) {
+        std::cout << "\n=== Final Stats ===" << std::endl;
+        primary->biology_get_metrics(true);
     }
 
     // Print a summary to the console
@@ -317,7 +335,10 @@ int main(int argc, char* argv[]) {
                   << "5. Exit\n"
                   << "Please enter your choice (1-5): ";
         int choice;
-        std::cin >> choice;
+        if (!(std::cin >> choice)) {
+            std::cerr << "Invalid input. Exiting program.\n";
+            return 1;
+        }
         switch (choice) 
         {
             case 1:
@@ -329,8 +350,7 @@ int main(int argc, char* argv[]) {
                 break;
             case 2:
                 std::cout << "Running Basic Simulation...\n";
-                runSimulation(numTicks, autosaveInterval, bufferCapacity, saveDir, numEntities);
-                break;
+                return runSimulation(numTicks, autosaveInterval, bufferCapacity, saveDir, numEntities);
             case 3:
                 print_usage(argv[0]);
                 break;

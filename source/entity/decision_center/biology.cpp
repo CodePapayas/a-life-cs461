@@ -119,7 +119,7 @@ void Biology::set_efficiency(const std::string& type, double value)
 
 void Biology::add_health(double val)
 {
-    _health = std::min(_health + val, 1.0);
+    _health = std::clamp(_health + val, 0.0, 1.0);
 }
 
 void Biology::add_energy(double val)
