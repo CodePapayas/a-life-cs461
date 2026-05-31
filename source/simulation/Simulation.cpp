@@ -353,7 +353,8 @@ void Simulation::execute_movement(int direction){
     int prev_x = entity->x;
     int prev_y = entity->y;
     // Fetch the new coordinates and update the entity's position
-    std::vector<int> new_coords = Movement::execute_movement_wraparound(entity->x, entity->y, action, _environment->getTileAmountX(), _environment->getTileAmountY(), entity->biology_get_metrics()["Energy"]);
+    double entity_energy = entity->biology_get_metrics()["Energy"];
+    std::vector<int> new_coords = Movement::execute_movement_wraparound(entity->x, entity->y, action, _environment->getTileAmountX(), _environment->getTileAmountY(), entity_energy);
     if(new_coords[0]>=_environment->getTileAmountX() || new_coords[1] >= _environment->getTileAmountY() || new_coords[0] < 0 || new_coords[1] < 0){
         std::cerr << "Error: Movement resulted in out of bounds coordinates (" << new_coords[0] << ", " << new_coords[1] << ")" << std::endl;
         return;
@@ -688,13 +689,14 @@ void Simulation::display_environment() const
 
     char stats[256];
     Entity* primary = nullptr;
-    for (const auto& e : _entities)
-        if (!e->biology_check_death()) { primary = e.get(); break; }
+    int primary_idx = -1;
+    for (int i = 0; i < (int)_entities.size(); ++i)
+        if (!_entities[i]->biology_check_death()) { primary = _entities[i].get(); primary_idx = i; break; }
     if (primary) {
         auto m = primary->biology_get_metrics();
         std::snprintf(stats, sizeof(stats),
-            "Tick: %-6d  Health: %5.3f  Energy: %5.3f  Water: %5.3f\n",
-            _tick_count,
+            "Tick: %-6d  Entity[%d]  Health: %5.3f  Energy: %5.3f  Water: %5.3f\n",
+            _tick_count, primary_idx,
             m["Health"], m["Energy"], m["Water"]);
     } else {
         std::snprintf(stats, sizeof(stats), "Tick: %-6d  [no primary entity]\n", _tick_count);
