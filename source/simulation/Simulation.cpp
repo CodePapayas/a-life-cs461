@@ -13,9 +13,23 @@
 #include <cmath>
 #include <cstdio>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <iostream>
 #include <format>
+#include <unordered_map>
+
+namespace {
+struct CoutRedirect {
+    std::streambuf* previous = nullptr;
+
+    ~CoutRedirect() {
+        if (previous) {
+            std::cout.rdbuf(previous);
+        }
+    }
+};
+} // namespace
 
 Simulation::Simulation()
     : _environment(nullptr)
@@ -339,7 +353,8 @@ void Simulation::execute_movement(int direction){
     int prev_x = entity->x;
     int prev_y = entity->y;
     // Fetch the new coordinates and update the entity's position
-    std::vector<int> new_coords = Movement::execute_movement_wraparound(entity->x, entity->y, action, _environment->getTileAmountX(), _environment->getTileAmountY(), entity->biology_get_metrics()["Energy"]);
+    double entity_energy = entity->biology_get_metrics()["Energy"];
+    std::vector<int> new_coords = Movement::execute_movement_wraparound(entity->x, entity->y, action, _environment->getTileAmountX(), _environment->getTileAmountY(), entity_energy);
     if(new_coords[0]>=_environment->getTileAmountX() || new_coords[1] >= _environment->getTileAmountY() || new_coords[0] < 0 || new_coords[1] < 0){
         std::cerr << "Error: Movement resulted in out of bounds coordinates (" << new_coords[0] << ", " << new_coords[1] << ")" << std::endl;
         return;
@@ -416,9 +431,9 @@ void Simulation::sleep() {
 
 int Simulation::tick(int print){
     _debug = print;
-    if (!print){
-        std::cout.setstate(std::ios_base::failbit);
-    }
+    std::ostringstream silentOutput;
+    CoutRedirect coutRedirect;
+    coutRedirect.previous = std::cout.rdbuf(silentOutput.rdbuf());
 
     _environment->updateTiles();
 
@@ -434,14 +449,16 @@ int Simulation::tick(int print){
             interpret_decision(decision);
         }
         _entities[i]->update_biology();
-        _entities[i]->biology_get_metrics(true);
+        _entities[i]->biology_get_metrics(false);
     }
 
     _current_entity_index = 0;
 
-    cout << _environment->getTileAmountX() << "x" << _environment->getTileAmountY() << endl;
     if (print){
+        std::cout.rdbuf(coutRedirect.previous);
+        coutRedirect.previous = nullptr;
         display_environment();
+        ++_tick_count;
     }
 
     int alive = 0;
@@ -449,16 +466,9 @@ int Simulation::tick(int print){
         if (!e->biology_check_death()) ++alive;
     }
 
-    if (!print){
-        std::cout.clear();
-    }
-
     if (alive == 0) {
         std::cout << "All entities have died. Ending simulation." << std::endl;
         return -1;
-    }
-    if (_entities.size()!=1){
-    std::cout << alive << "/" << _entities.size() << " entities alive." << std::endl;
     }
     return 0;
 }
@@ -598,70 +608,100 @@ void Simulation::display_environment() const
     constexpr const char* kSolidBlock = u8"\u2588\u2588";
     constexpr const char* kLightShade = u8"\u2591\u2591";
 
-    // Buffer entire frame and flush once \u2014 prevents flicker/scroll
-    std::string out;
-    out.reserve(8192);
+    const int w = _environment->getTileAmountX();
+    const int h = _environment->getTileAmountY();
 
-    // Cursor home, hide cursor during render
-    out += "\033[H\033[?25l";
-
+    // Build O(1) lookup maps before the render loop.
+    std::unordered_map<uint32_t, Entity*> entity_map;
+    entity_map.reserve(_entities.size() * 2);
     int alive = 0;
-    for (const auto& e : _entities)
-        if (!e->biology_check_death()) ++alive;
+    for (const auto& e : _entities) {
+        if (!e->biology_check_death()) {
+            ++alive;
+            auto pos = e->get_coordinates();
+            entity_map[static_cast<uint32_t>(pos.y) * static_cast<uint32_t>(w) + static_cast<uint32_t>(pos.x)] = e.get();
+        }
+    }
+
+    std::unordered_map<uint32_t, ResourceNode*> resource_map;
+    for (auto* r : _resource_manager->getAllResources()) {
+        if (!r->isDepleted()) {
+            auto p = r->getPosition();
+            resource_map[static_cast<uint32_t>(p.y) * static_cast<uint32_t>(w) + static_cast<uint32_t>(p.x)] = r;
+        }
+    }
+
+    // Buffer entire frame and flush once to keep terminal animation smooth.
+    std::string out;
+    out.reserve(static_cast<size_t>(w) * static_cast<size_t>(h) * 32 + 256);
+
+    if (_tick_count == 0)
+        out += "\033[2J\033[?25l";
+    out += "\033[H";
 
     char header[64];
-    std::snprintf(header, sizeof(header), "Entities: %d alive / %d total\n",
+    std::snprintf(header, sizeof(header), "Entities: %d / %d\n",
                   alive, static_cast<int>(_entities.size()));
     out += header;
 
-    for (int y = 0; y < _environment->getTileAmountY(); ++y)
+    for (int y = 0; y < h; ++y)
     {
-        for (int x = 0; x < _environment->getTileAmountX(); ++x)
+        for (int x = 0; x < w; ++x)
         {
-            double tile_value = _environment->getTileValue(Vector2d(x, y), 0);
-
-            Entity* entity_here = nullptr;
-            for (const auto& e : _entities) {
-                if (!e->biology_check_death() &&
-                    e->get_coordinates().x == x && e->get_coordinates().y == y) {
-                    entity_here = e.get();
-                    break;
-                }
-            }
+            uint32_t key = static_cast<uint32_t>(y) * static_cast<uint32_t>(w) + static_cast<uint32_t>(x);
 
             char cell[64];
-            if (entity_here)
+            auto eit = entity_map.find(key);
+            if (eit != entity_map.end())
             {
-                double curr_health = entity_here->biology_get_metrics()["Health"];
+                double curr_health = eit->second->biology_get_metrics()["Health"];
                 int g = (int)(curr_health * 255);
                 std::snprintf(cell, sizeof(cell), "\033[38;2;255;%d;%dm%s\033[0m", g, g, kSolidBlock);
             }
-            else if (!_resource_manager->findResourcesInRange(Position(x, y), 0).empty())
-            {
-                double energy_value = _resource_manager->getResourceAtPosition(Position(x, y))->getEnergyValue();
-                int intensity = static_cast<int>(energy_value * 255);
-                ResourceType rtype = _resource_manager->getResourceAtPosition(Position(x, y))->getType();
-                if (rtype == ResourceType::FOOD)
-                    std::snprintf(cell, sizeof(cell), "\033[38;2;%d;%d;0m%s\033[0m", intensity, intensity, kSolidBlock);
-                else if (rtype == ResourceType::WATER)
-                    std::snprintf(cell, sizeof(cell), "\033[38;2;0;0;%dm%s\033[0m", intensity, kSolidBlock);
-                else
-                    std::snprintf(cell, sizeof(cell), "\033[38;2;%d;0;%dm%s\033[0m", intensity, intensity, kSolidBlock);
-            }
             else
             {
-                double normalized = (tile_value + 2.0) / 4.0;
-                int r = (int)(normalized * 255);
-                int g = (int)((1 - normalized) * 255);
-                std::snprintf(cell, sizeof(cell), "\033[38;2;%d;%d;%dm%s\033[0m", r, g, g, kLightShade);
+                auto rit = resource_map.find(key);
+                if (rit != resource_map.end())
+                {
+                    ResourceNode* res = rit->second;
+                    int intensity = static_cast<int>(res->getEnergyValue() * 255);
+                    ResourceType rtype = res->getType();
+                    if (rtype == ResourceType::FOOD)
+                        std::snprintf(cell, sizeof(cell), "\033[38;2;%d;%d;0m%s\033[0m", intensity, intensity, kSolidBlock);
+                    else if (rtype == ResourceType::WATER)
+                        std::snprintf(cell, sizeof(cell), "\033[38;2;0;0;%dm%s\033[0m", intensity, kSolidBlock);
+                    else
+                        std::snprintf(cell, sizeof(cell), "\033[38;2;%d;0;%dm%s\033[0m", intensity, intensity, kSolidBlock);
+                }
+                else
+                {
+                    double tile_value = _environment->getTileValue(Vector2d(x, y), 0);
+                    double normalized = (tile_value + 2.0) / 4.0;
+                    int r = (int)(normalized * 255);
+                    int g = (int)((1 - normalized) * 255);
+                    std::snprintf(cell, sizeof(cell), "\033[38;2;%d;%d;%dm%s\033[0m", r, g, g, kLightShade);
+                }
             }
             out += cell;
         }
         out += '\n';
     }
 
-    // Restore cursor
-    out += "\033[?25h";
+    char stats[256];
+    Entity* primary = nullptr;
+    int primary_idx = -1;
+    for (int i = 0; i < (int)_entities.size(); ++i)
+        if (!_entities[i]->biology_check_death()) { primary = _entities[i].get(); primary_idx = i; break; }
+    if (primary) {
+        auto m = primary->biology_get_metrics();
+        std::snprintf(stats, sizeof(stats),
+            "Tick: %-6d  Entity[%d]  Health: %5.3f  Energy: %5.3f  Water: %5.3f\n",
+            _tick_count, primary_idx,
+            m["Health"], m["Energy"], m["Water"]);
+    } else {
+        std::snprintf(stats, sizeof(stats), "Tick: %-6d  [no primary entity]\n", _tick_count);
+    }
+    out += stats;
 
     std::cout << out << std::flush;
 }

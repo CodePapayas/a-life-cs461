@@ -119,7 +119,7 @@ void Biology::set_efficiency(const std::string& type, double value)
 
 void Biology::add_health(double val)
 {
-    _health = std::min(_health + val, 1.0);
+    _health = std::clamp(_health + val, 0.0, 1.0);
 }
 
 void Biology::add_energy(double val)
@@ -197,7 +197,7 @@ double Biology::movement_energy_drain(const std::string& terrain_type)
 
     double amount = std::max(
         efficiency * TERRAIN_ENERGY_COEFFICIENT * _genetic_values["Mass"],
-        0.01
+        0.001
     );
 
     add_energy(amount * -1);
@@ -225,7 +225,7 @@ double Biology::movement_water_drain(const std::string& terrain_type)
     double water_efficiency = 1.0 - _genetic_values["Water Efficiency"];
     double amount = std::max(
         water_efficiency * efficiency * TERRAIN_WATER_COEFFICIENT,
-        0.01
+        0.001
     );
 
     add_water(amount * -1);
@@ -253,7 +253,7 @@ double Biology::tick_energy_drain()
     // Calculate the drain: sqrt of sum, divided by number of traits, adjusted for mass
     total = std::pow(total, 0.5) / static_cast<double>(_genetic_values.size());
     total = total * (1.0 - std::pow(_genetic_values["Mass"], 2.0));
-    double drain = std::max(total * ENERGY_DRAIN_COEFFICIENT,.02);
+    double drain = std::max(total * ENERGY_DRAIN_COEFFICIENT,.01);
     add_energy(drain * -1);
     return total;
 }
@@ -268,7 +268,7 @@ double Biology::tick_health_drain()
     if (_energy < .2)
     {
         double difference = _genetic_values["Mass"] - _energy;
-        double drain = std::pow(difference, 2.0);
+        double drain = std::pow(difference, 2.0) * 0.1;
         add_health(drain * -1);
         return drain;
     }

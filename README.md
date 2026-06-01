@@ -54,10 +54,13 @@ Options:
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--ticks N` | 10 | Number of simulation ticks |
+| `--entities N` | 5 | Number of entities at start |
 | `--autosave K` | 0 (off) | Save state history every K ticks |
 | `--buffer-size N` | 1000 | Circular buffer capacity |
 | `--save-dir DIR` | `saves/` | Output directory for autosave files |
 | `--help` | | Show usage |
+
+The simulation renders the grid in-place in the terminal. Each frame shows entity count, tick, and the stats of the lowest-index living entity (health, energy, water).
 
 ## Project structure
 

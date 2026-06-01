@@ -27,12 +27,11 @@ private:
     int m_pollInterval;
     int m_historyLimit;
 
-    // Clear terminal and jump cursor to top-left
-    void clearScreen() const;
-
     // Draw the summary stats table at the top
-    void drawSummaryTable(const std::vector<SnapshotData>& data) const;
+    void drawSummaryTable(const std::vector<SnapshotData>& data, std::ostream& out) const;
 
     // Draw both charts back-to-back below the summary
-    void drawCharts(const std::vector<SnapshotData>& data) const;
+    void drawCharts(const std::vector<SnapshotData>& data, std::ostream& out) const;
+
+    int m_lastFrameLines = 0;
 };
